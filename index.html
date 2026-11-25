@@ -1304,7 +1304,7 @@
 
     // Builds an SVG path where corner turns are rounded smoothly on one side
     // instead of forming sharp angular kinks, while keeping straight runs crisp.
-    function buildSmoothCornerPath(pts, cornerRadius = 24) {
+    function buildSmoothCornerPath(pts, cornerRadius = 46) {
       if (!pts || pts.length === 0) return '';
       if (pts.length === 1) return `M ${pts[0].x} ${pts[0].y}`;
       if (pts.length === 2) return `M ${pts[0].x} ${pts[0].y} L ${pts[1].x} ${pts[1].y}`;
@@ -1328,17 +1328,16 @@
           continue;
         }
 
-        // Cross product determines which side of the turn is the inner/outer bend
         const cross = (pCurr.x - pPrev.x) * (pNext.y - pCurr.y) - (pCurr.y - pPrev.y) * (pNext.x - pCurr.x);
         const dot = (v1x * v2x + v1y * v2y) / (len1 * len2);
 
-        // Skip rounding on nearly collinear segments or acute reversals
-        if (Math.abs(cross) < 4 || dot > 0.75) {
+        // Only skip if completely collinear (straight line)
+        if (Math.abs(cross) < 0.5 || dot > 0.995) {
           d += ` L ${pCurr.x} ${pCurr.y}`;
           continue;
         }
 
-        const r = Math.min(cornerRadius, len1 * 0.38, len2 * 0.38);
+        const r = Math.min(cornerRadius, len1 * 0.45, len2 * 0.45);
         const startX = pCurr.x + (v1x / len1) * r;
         const startY = pCurr.y + (v1y / len1) * r;
         const endX = pCurr.x + (v2x / len2) * r;
@@ -1353,10 +1352,10 @@
     }
 
     // Samples points along the rounded corner polyline so the train follows the curved bend
-    function sampleSmoothPolyline(pts, progress, cornerRadius = 24) {
+    function buildArticulatedCurveSamples(pts, cornerRadius = 56) {
       const sampled = [];
-      if (!pts || pts.length === 0) return { x: 0, y: 0, angleDeg: 0 };
-      if (pts.length === 1) return { x: pts[0].x, y: pts[0].y, angleDeg: 0 };
+      if (!pts || pts.length === 0) return { sampled: [{ x: 0, y: 0, cumDist: 0 }], totalDist: 0 };
+      if (pts.length === 1) return { sampled: [{ x: pts[0].x, y: pts[0].y, cumDist: 0 }], totalDist: 0 };
 
       sampled.push({ x: pts[0].x, y: pts[0].y });
       for (let i = 1; i < pts.length - 1; i++) {
@@ -1375,19 +1374,19 @@
         const cross = (pCurr.x - pPrev.x) * (pNext.y - pCurr.y) - (pCurr.y - pPrev.y) * (pNext.x - pCurr.x);
         const dot = len1 > 0 && len2 > 0 ? (v1x * v2x + v1y * v2y) / (len1 * len2) : 1;
 
-        if (len1 < 1 || len2 < 1 || Math.abs(cross) < 4 || dot > 0.75) {
+        if (len1 < 1 || len2 < 1 || Math.abs(cross) < 0.5 || dot > 0.995) {
           sampled.push({ x: pCurr.x, y: pCurr.y });
           continue;
         }
 
-        const r = Math.min(cornerRadius, len1 * 0.38, len2 * 0.38);
+        const r = Math.min(cornerRadius, len1 * 0.48, len2 * 0.48);
         const sx = pCurr.x + (v1x / len1) * r;
         const sy = pCurr.y + (v1y / len1) * r;
         const ex = pCurr.x + (v2x / len2) * r;
         const ey = pCurr.y + (v2y / len2) * r;
 
         sampled.push({ x: sx, y: sy });
-        const steps = 8;
+        const steps = 18;
         for (let s = 1; s < steps; s++) {
           const t = s / steps;
           const inv = 1 - t;
@@ -1401,27 +1400,39 @@
       sampled.push({ x: pts[pts.length - 1].x, y: pts[pts.length - 1].y });
 
       let totalDist = 0;
-      const segDists = [];
-      for (let i = 0; i < sampled.length - 1; i++) {
-        const d = Math.hypot(sampled[i + 1].x - sampled[i].x, sampled[i + 1].y - sampled[i].y);
-        segDists.push(d);
-        totalDist += d;
+      sampled[0].cumDist = 0;
+      for (let i = 1; i < sampled.length; i++) {
+        totalDist += Math.hypot(sampled[i].x - sampled[i - 1].x, sampled[i].y - sampled[i - 1].y);
+        sampled[i].cumDist = totalDist;
       }
+      return { sampled, totalDist };
+    }
 
-      const clamped = Math.min(1, Math.max(0, progress));
-      const target = clamped * totalDist;
-      let acc = 0;
-      for (let i = 0; i < segDists.length; i++) {
-        if (acc + segDists[i] >= target || i === segDists.length - 1) {
-          const t = segDists[i] === 0 ? 0 : (target - acc) / segDists[i];
-          const x = sampled[i].x + (sampled[i + 1].x - sampled[i].x) * t;
-          const y = sampled[i].y + (sampled[i + 1].y - sampled[i].y) * t;
-          const angleDeg = (Math.atan2(sampled[i + 1].y - sampled[i].y, sampled[i + 1].x - sampled[i].x) * 180) / Math.PI;
+    function queryPointAtArcDistance(curveData, targetDist) {
+      const { sampled, totalDist } = curveData;
+      if (!sampled || sampled.length === 0) return { x: 0, y: 0, angleDeg: 0 };
+      if (sampled.length === 1 || totalDist <= 0) return { x: sampled[0].x, y: sampled[0].y, angleDeg: 0 };
+
+      const clamped = Math.min(totalDist, Math.max(0, targetDist));
+      for (let i = 0; i < sampled.length - 1; i++) {
+        const a = sampled[i];
+        const b = sampled[i + 1];
+        if (b.cumDist >= clamped || i === sampled.length - 2) {
+          const segLen = b.cumDist - a.cumDist;
+          const t = segLen <= 0 ? 0 : (clamped - a.cumDist) / segLen;
+          const x = a.x + (b.x - a.x) * t;
+          const y = a.y + (b.y - a.y) * t;
+          const angleDeg = (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI;
           return { x, y, angleDeg };
         }
-        acc += segDists[i];
       }
-      return { x: sampled[0].x, y: sampled[0].y, angleDeg: 0 };
+      const last = sampled[sampled.length - 1];
+      return { x: last.x, y: last.y, angleDeg: 0 };
+    }
+
+    function sampleSmoothPolyline(pts, progress, cornerRadius = 56) {
+      const curveData = buildArticulatedCurveSamples(pts, cornerRadius);
+      return queryPointAtArcDistance(curveData, Math.min(1, Math.max(0, progress)) * curveData.totalDist);
     }
 
     function renderSchematicMap() {
@@ -1454,17 +1465,17 @@
           ? pts.map((p, idx) => (idx <= 7 ? { x: p.x + 9, y: p.y + 9 } : { x: p.x + 12, y: p.y }))
           : pts;
 
-        const d = buildSmoothCornerPath(renderPts, rawLid === 'meerut' ? 28 : 22);
-        const isFocused = activeSection
+        const d = buildSmoothCornerPath(renderPts, rawLid === 'meerut' ? 58 : 56);
+        const isLineSelected = activeSection
           ? rawLid === activeSection.corridorKey
           : (currentLineFilter === 'all' || currentLineFilter === lid);
-        const opacity = isFocused ? '0.95' : '0.15';
+        const opacity = isLineSelected ? '1' : '0.18';
 
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         path.setAttribute('d', d);
         path.setAttribute('fill', 'none');
         path.setAttribute('stroke', meta.color);
-        path.setAttribute('stroke-width', (currentLineFilter === lid || (activeSection && rawLid === activeSection.corridorKey)) ? '9.5' : '6.5');
+        path.setAttribute('stroke-width', rawLid === 'meerut' ? '5.5' : '7');
         path.setAttribute('stroke-linecap', 'round');
         path.setAttribute('stroke-linejoin', 'round');
         path.setAttribute('opacity', opacity);
@@ -2141,25 +2152,58 @@
 
       const totalSegs = n - 1;
       const exactPos = simState.progress * totalSegs;
-      const segIdx = Math.min(totalSegs - 1, Math.max(0, Math.floor(exactPos)));
-      const localT = exactPos - segIdx;
+      const cornerRadius = simState.lineId === 'meerut' ? 58 : 56;
+      const curveData = buildArticulatedCurveSamples(pts, cornerRadius);
+      const centerArcDist = Math.min(1, Math.max(0, simState.progress)) * curveData.totalDist;
+      const dirSign = simState.direction === 1 ? 1 : -1;
 
-      const pA = pts[segIdx];
-      const pB = pts[segIdx + 1];
-      const curvedSample = sampleSmoothPolyline(pts, simState.progress, simState.lineId === 'meerut' ? 28 : 22);
-      const x = curvedSample.x;
-      const y = curvedSample.y;
-      const angleDeg = simState.direction === 1 ? curvedSample.angleDeg : curvedSample.angleDeg + 180;
+      const centerSample = queryPointAtArcDistance(curveData, centerArcDist);
+      const x = centerSample.x;
+      const y = centerSample.y;
 
       const marker = document.getElementById('live-train-marker');
       if (marker) {
-        marker.setAttribute('transform', `translate(${x.toFixed(1)}, ${y.toFixed(1)}) rotate(${angleDeg.toFixed(1)})`);
+        marker.removeAttribute('transform');
       }
+
+      const halo = document.getElementById('train-halo-circle');
+      if (halo) {
+        halo.setAttribute('cx', x.toFixed(1));
+        halo.setAttribute('cy', y.toFixed(1));
+      }
+
+      // Position each individual coach & gangway independently along the curved track arc
+      // so the 4-coach metro bends smoothly around turns instead of pivoting like a rigid straight stick
+      const coachParts = [
+        { id: 'metro-coach-1', localCenter: 39.5 },
+        { id: 'metro-bellow-1', localCenter: 25.5 },
+        { id: 'metro-coach-2', localCenter: 11.5 },
+        { id: 'metro-bellow-2', localCenter: -2.5 },
+        { id: 'metro-coach-3', localCenter: -16.5 },
+        { id: 'metro-bellow-3', localCenter: -30.5 },
+        { id: 'metro-coach-4', localCenter: -44.0 }
+      ];
+
+      coachParts.forEach(part => {
+        const el = document.getElementById(part.id);
+        if (!el) return;
+        const partArcDist = centerArcDist + dirSign * part.localCenter;
+        const s = queryPointAtArcDistance(curveData, partArcDist);
+        const partAngle = dirSign === 1 ? s.angleDeg : s.angleDeg + 180;
+        el.setAttribute(
+          'transform',
+          `translate(${s.x.toFixed(1)}, ${s.y.toFixed(1)}) rotate(${partAngle.toFixed(1)}) translate(${-part.localCenter}, 0)`
+        );
+      });
 
       const doorsOpen = simState.dwellTimer > 0.15;
       const doorsFx = document.getElementById('metro-doors-open-fx');
       const brakeFx = document.getElementById('metro-brake-fx');
-      if (doorsFx) doorsFx.classList.toggle('hidden', !doorsOpen);
+      if (doorsFx) {
+        doorsFx.classList.toggle('hidden', !doorsOpen);
+        const leadAngle = dirSign === 1 ? centerSample.angleDeg : centerSample.angleDeg + 180;
+        doorsFx.setAttribute('transform', `translate(${x.toFixed(1)}, ${y.toFixed(1)}) rotate(${leadAngle.toFixed(1)})`);
+      }
       if (brakeFx) brakeFx.classList.toggle('hidden', !doorsOpen);
 
       const activeIdx = Math.min(n - 1, Math.max(0, Math.round(exactPos)));
