@@ -1,0 +1,2641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DMRC Delhi-NCR Transit Portal (August 2026)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+      overflow-x: hidden;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    .station-label {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      paint-order: stroke fill;
+      stroke: #ffffff;
+      stroke-width: 4.5px;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      user-select: none;
+      pointer-events: none;
+    }
+    .station-node {
+      cursor: pointer;
+      transition: r 0.15s ease, stroke-width 0.15s ease;
+    }
+    .station-node:hover {
+      stroke-width: 4px;
+    }
+    @keyframes pulseRing {
+      0% { transform: scale(0.95); opacity: 0.85; }
+      70% { transform: scale(1.65); opacity: 0; }
+      100% { transform: scale(0.95); opacity: 0; }
+    }
+    .train-halo {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: pulseRing 1.6s infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Top Header -->
+  <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40 shadow-md">
+    <div class="max-w-[1600px] mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-red-600 flex items-center justify-center shadow-inner shrink-0">
+          <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+            <circle cx="12" cy="12" r="9"></circle>
+            <line x1="4" y1="9" x2="20" y2="9"></line>
+            <line x1="15" y1="9" x2="9" y2="15"></line>
+            <line x1="4" y1="15" x2="20" y2="15"></line>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <h1 class="text-base sm:text-lg font-extrabold tracking-tight">DMRC Delhi-NCR Metro Network</h1>
+            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">As on August 2026</span>
+          </div>
+          <p class="text-xs text-slate-400">519.508 km Operational • 338 Stations • DMRC, NMRC, Rapid Metro &amp; NCRTC Namo Bharat</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex flex-wrap items-center gap-1.5 bg-slate-800/90 p-1 rounded-xl border border-slate-700">
+        <button id="tab-btn-map" onclick="switchTab('map')" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-red-600 text-white shadow transition">Interactive Map &amp; Sim</button>
+        <button id="tab-btn-upcoming" onclick="switchTab('upcoming')" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white transition">Upcoming Ph-IV/VA, NMRC &amp; GMRL (7)</button>
+        <button id="tab-btn-planner" onclick="switchTab('planner')" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white transition">Route &amp; Official Fare</button>
+        <button id="tab-btn-stats" onclick="switchTab('stats')" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white transition">Network Stats</button>
+        <button id="tab-btn-directory" onclick="switchTab('directory')" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white transition">Station Directory</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-[1600px] w-full mx-auto px-3 sm:px-4 py-4">
+
+    <!-- TAB 1: INTERACTIVE SCHEMATIC MAP & LIVE TRAIN SIMULATION -->
+    <section id="tab-map" class="tab-panel space-y-3">
+      <!-- Map Controls Toolbar -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-3 shadow-sm space-y-2.5">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <!-- Network Layer Switcher -->
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mr-1">Layer:</span>
+            <button id="layer-btn-operational" onclick="setNetworkLayerMode('operational')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-900 text-white transition">Operational (14)</button>
+            <button id="layer-btn-all" onclick="setNetworkLayerMode('all')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">All Networks (21)</button>
+            <button id="layer-btn-upcoming" onclick="setNetworkLayerMode('upcoming')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">Upcoming Ph-IV/VA, NMRC &amp; GMRL (7)</button>
+          </div>
+
+          <!-- Quick Station Jump & Tools -->
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="relative">
+              <input id="map-station-search" type="text" list="all-stations-datalist" placeholder="Jump to station..." oninput="jumpToStationFromSearch(this.value)" class="pl-3 pr-7 py-1 text-xs rounded-lg border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500 w-44 sm:w-56" />
+            </div>
+            <button id="btn-toggle-labels" onclick="toggleShowAllLabels()" class="px-2.5 py-1 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition">Labels: Auto-Smart</button>
+            <button id="btn-toggle-sidebar" onclick="toggleMapSidebar()" class="px-2.5 py-1 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition">Hide Sidebar</button>
+          </div>
+        </div>
+
+        <!-- Line & Section Filter Pills -->
+        <div id="line-filter-pills" class="flex flex-wrap items-center gap-1.5 pt-1 border-t border-slate-100"></div>
+      </div>
+
+      <!-- Map + Inspector Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+        <!-- SVG Viewport Column -->
+        <div id="map-canvas-col" class="lg:col-span-9 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden relative select-none" style="height: 74vh; min-height: 540px;">
+          <!-- Floating Show Sidebar Button (Visible when sidebar hidden) -->
+          <button id="btn-show-sidebar-floating" onclick="toggleMapSidebar()" class="hidden absolute top-3 right-3 z-20 px-3 py-1.5 rounded-xl bg-slate-900/90 text-white text-xs font-bold shadow-lg hover:bg-slate-800 transition">
+            Show Sidebar
+          </button>
+
+          <!-- Zoom & Reset Controls -->
+          <div class="absolute bottom-4 right-4 z-20 flex flex-col gap-1.5 bg-white/95 backdrop-blur p-1.5 rounded-xl border border-slate-200 shadow-lg">
+            <button onclick="zoomMap(1.25)" title="Zoom In" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 font-bold text-slate-800 flex items-center justify-center">+</button>
+            <button onclick="zoomMap(0.8)" title="Zoom Out" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 font-bold text-slate-800 flex items-center justify-center">−</button>
+            <button onclick="resetMapView()" title="Reset View" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-[10px] font-extrabold text-slate-700 flex items-center justify-center">FIT</button>
+          </div>
+
+          <!-- Legend Overlay -->
+          <div class="absolute bottom-4 left-4 z-20 bg-white/95 backdrop-blur px-3 py-2 rounded-xl border border-slate-200 shadow-md text-[11px] space-y-1 pointer-events-none hidden sm:block">
+            <div class="font-extrabold text-slate-800 uppercase tracking-wider text-[10px]">Schematic Key</div>
+            <div class="flex items-center gap-2 text-slate-600"><span class="w-3.5 h-3.5 rounded-full border-2 border-slate-900 bg-white inline-block"></span> Interchange Hub</div>
+            <div class="flex items-center gap-2 text-slate-600"><span class="w-3 h-3 rounded-full bg-red-600 inline-block"></span> Terminal / Regular Station</div>
+            <div class="flex items-center gap-2 text-slate-600"><span class="w-5 border-t-2 border-dashed border-sky-600 inline-block"></span> Skywalk (Noida Sec 51–52)</div>
+          </div>
+
+          <!-- Live Train Simulation HUD -->
+          <div id="train-sim-hud" class="hidden absolute top-3 left-3 z-20 w-[calc(100%-1.5rem)] sm:w-96 bg-slate-900/95 backdrop-blur text-white rounded-2xl p-3.5 shadow-2xl border border-slate-700 space-y-2.5">
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2 min-w-0">
+                <span id="sim-line-dot" class="w-3 h-3 rounded-full shrink-0 bg-red-500"></span>
+                <span id="sim-line-title" class="text-xs font-extrabold truncate">Line Simulation</span>
+              </div>
+              <button onclick="stopTrainSimulation()" class="text-slate-400 hover:text-white text-xs font-bold px-1.5 py-0.5 rounded bg-slate-800">✕</button>
+            </div>
+
+            <!-- Live Status & Door State -->
+            <div class="bg-slate-800/90 rounded-xl p-2.5 border border-slate-700/80 space-y-1.5">
+              <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider">
+                <span id="sim-status-badge" class="text-emerald-400">● IN TRANSIT</span>
+                <span id="sim-stop-counter" class="text-slate-400">Stop 1 / 10</span>
+              </div>
+              <div id="sim-current-station" class="text-sm font-extrabold text-white truncate">Starting Station</div>
+              <div id="sim-next-station" class="text-[11px] text-slate-300 truncate">Next: —</div>
+              <!-- Door Indicator Bar -->
+              <div class="flex items-center gap-2 pt-1">
+                <span class="text-[10px] text-slate-400 font-semibold">DOORS:</span>
+                <div id="sim-door-left" class="h-2 flex-1 rounded bg-slate-600 transition-all"></div>
+                <div id="sim-door-right" class="h-2 flex-1 rounded bg-slate-600 transition-all"></div>
+                <span id="sim-door-text" class="text-[10px] font-bold text-slate-400">CLOSED</span>
+              </div>
+            </div>
+
+            <!-- Timeline Scrubber -->
+            <div class="space-y-1">
+              <input id="sim-progress-slider" type="range" min="0" max="1000" value="0" oninput="scrubTrainProgress(this.value)" class="w-full accent-red-500 h-1.5 bg-slate-700 rounded-lg cursor-pointer" />
+            </div>
+
+            <!-- Controls & Speed (Including 0.5x) -->
+            <div class="flex flex-wrap items-center justify-between gap-1.5">
+              <div class="flex items-center gap-1">
+                <button id="sim-play-btn" onclick="toggleTrainPlay()" class="px-2.5 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-xs font-bold">Pause</button>
+                <button onclick="reverseTrainDirection()" title="Reverse Direction" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold">⇄ Rev</button>
+                <button onclick="restartTrainSimulation()" title="Restart" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold">↺</button>
+              </div>
+              <div class="flex items-center gap-1 bg-slate-800 p-0.5 rounded-lg">
+                <button onclick="setTrainSpeed(0.5)" id="spd-0.5" class="spd-btn px-1.5 py-0.5 rounded text-[10px] font-bold text-slate-300 hover:text-white">0.5x</button>
+                <button onclick="setTrainSpeed(1)" id="spd-1" class="spd-btn px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-600 text-white">1x</button>
+                <button onclick="setTrainSpeed(2)" id="spd-2" class="spd-btn px-1.5 py-0.5 rounded text-[10px] font-bold text-slate-300 hover:text-white">2x</button>
+                <button onclick="setTrainSpeed(4)" id="spd-4" class="spd-btn px-1.5 py-0.5 rounded text-[10px] font-bold text-slate-300 hover:text-white">4x</button>
+              </div>
+            </div>
+
+            <!-- Auto-Reverse & Follow Train Options -->
+            <div class="flex items-center justify-between gap-2 pt-1.5 border-t border-slate-700/80">
+              <button id="sim-autoreverse-btn" onclick="toggleAutoReverse()" class="flex-1 py-1 px-2 rounded-lg text-[10px] font-bold bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-600/30 transition">
+                ↻ Auto-Reverse: ON
+              </button>
+              <button id="sim-follow-btn" onclick="toggleFollowTrain()" class="flex-1 py-1 px-2 rounded-lg text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-600 hover:bg-slate-700 transition">
+                ◎ Follow Metro: OFF
+              </button>
+            </div>
+          </div>
+
+          <!-- Interactive SVG Schematic Canvas -->
+          <svg id="dmrc-svg" class="w-full h-full cursor-grab active:cursor-grabbing bg-[#f8fafc]" viewBox="0 0 1200 720">
+            <defs>
+              <pattern id="grid-pattern" width="50" height="50" patternUnits="userSpaceOnUse">
+                <path d="M 50 0 L 0 0 0 50" fill="none" stroke="#e2e8f0" stroke-width="0.6" />
+              </pattern>
+            </defs>
+            <g id="map-viewport-group">
+              <rect x="-300" y="-300" width="3600" height="3000" fill="url(#grid-pattern)" />
+              <!-- Yamuna River Geographic Context (Crosses Majlis Park-Burari, Kashmere Gate-Shastri Park, Indraprastha-Yamuna Bank, east of Sarai Kale Khan & beside Kalindi Kunj) -->
+              <path d="M 1180 120 C 1270 320, 1340 530, 1475 835 C 1560 1020, 1695 1130, 1715 1280 C 1735 1370, 1825 1410, 1845 1510 C 1890 1660, 1995 1795, 2110 1920 C 2210 2030, 2320 2180, 2440 2360" fill="none" stroke="#bae6fd" stroke-width="36" stroke-linecap="round" opacity="0.72" />
+              <text x="1935" y="1720" fill="#0284c7" font-size="13" font-weight="800" letter-spacing="4" transform="rotate(47 1935 1720)" opacity="0.85">YAMUNA RIVER</text>
+
+              <g id="map-lines-layer"></g>
+              <g id="map-stations-layer"></g>
+              <g id="map-labels-layer"></g>
+
+              <!-- Live Animated Articulated Multi-Coach DMRC Metro Rake -->
+              <g id="live-train-marker" class="hidden" pointer-events="none">
+                <circle r="24" fill="#ef4444" class="train-halo" id="train-halo-circle"></circle>
+
+                <!-- Coach 4 (Rear Cab Coach) -->
+                <g id="metro-coach-4">
+                  <rect x="-56" y="-6.5" width="24" height="13" rx="3.5" fill="#f8fafc" stroke="#0f172a" stroke-width="1.6"></rect>
+                  <rect x="-54" y="-1.5" width="21" height="3" fill="#ef4444" class="metro-livery-stripe"></rect>
+                  <rect x="-54" y="-5" width="4" height="2.4" rx="0.8" fill="#1e293b"></rect>
+                  <rect x="-54" y="2.6" width="4" height="2.4" rx="0.8" fill="#1e293b"></rect>
+                  <rect x="-46" y="-5" width="4" height="2.4" rx="0.6" fill="#38bdf8"></rect>
+                  <rect x="-39" y="-5" width="4" height="2.4" rx="0.6" fill="#38bdf8"></rect>
+                  <rect x="-46" y="2.6" width="4" height="2.4" rx="0.6" fill="#38bdf8"></rect>
+                  <rect x="-39" y="2.6" width="4" height="2.4" rx="0.6" fill="#38bdf8"></rect>
+                  <circle cx="-55" cy="-3.5" r="1.2" fill="#ef4444"></circle>
+                  <circle cx="-55" cy="3.5" r="1.2" fill="#ef4444"></circle>
+                </g>
+
+                <!-- Gangway Bellows 3-4 -->
+                <rect id="metro-bellow-3" x="-32" y="-5.2" width="3" height="10.4" fill="#334155"></rect>
+
+                <!-- Coach 3 (Middle Coach) -->
+                <g id="metro-coach-3">
+                  <rect x="-29" y="-6.5" width="25" height="13" rx="1.8" fill="#f8fafc" stroke="#0f172a" stroke-width="1.6"></rect>
+                  <rect x="-28.5" y="-1.5" width="24" height="3" fill="#ef4444" class="metro-livery-stripe"></rect>
+                  <rect x="-25" y="-5" width="4.5" height="2.4" rx="0.6" fill="#38bdf8"></rect>
+                  <rect x="-18.5" y="-5" width="4.5" height="2.4" rx="0.6" fill="#38bdf8"></rect>
+                  <rect x="-12" y="-5" width="4.5" height="2.4" rx="0.6" fill="#38bdf8"></rect>
+                  <rect x="-25" y="2.6" width="4.5" height="2.4" rx="0.6" fill="#38bdf8"></rect>
+                  <rect x="-18.5" y="2.6" width="4.5" height="2.4" rx="0.6" fill="#38bdf8"></rect>
+                  <rect x="-12" y="2.6" width="4.5" height="2.4" rx="0.6" fill="#38bdf8"></rect>
+                </g>
+
+                <!-- Gangway Bellows 2-3 -->
+                <rect id="metro-bellow-2" x="-4" y="-5.2" width="3" height="10.4" fill="#334155"></rect>
+
+                <!-- Coach 2 (Middle Coach) -->
+                <g id="metro-coach-2">
+                  <rect x="-1" y="-6.5" width="25" height="13" rx="1.8" fill="#f8fafc" stroke="#0f172a" stroke-width="1.6"></rect>
+                  <rect x="-0.5" y="-1.5" width="24" height="3" fill="#ef4444" class="metro-livery-stripe"></rect>
+                  <rect x="3" y="-5" width="4.5" height="2.4" rx="0.6" fill="#38bdf8"></rect>
+                  <rect x="9.5" y="-5" width="4.5" height="2.4" rx="0.6" fill="#38bdf8"></rect>
+                  <rect x="16" y="-5" width="4.5" height="2.4" rx="0.6" fill="#38bdf8"></rect>
+                  <rect x="3" y="2.6" width="4.5" height="2.4" rx="0.6" fill="#38bdf8"></rect>
+                  <rect x="9.5" y="2.6" width="4.5" height="2.4" rx="0.6" fill="#38bdf8"></rect>
+                  <rect x="16" y="2.6" width="4.5" height="2.4" rx="0.6" fill="#38bdf8"></rect>
+                </g>
+
+                <!-- Gangway Bellows 1-2 -->
+                <rect id="metro-bellow-1" x="24" y="-5.2" width="3" height="10.4" fill="#334155"></rect>
+
+                <!-- Coach 1 (Lead Driving Cab Coach) -->
+                <g id="metro-coach-1">
+                  <rect x="27" y="-6.5" width="25" height="13" rx="3.5" fill="#f8fafc" stroke="#0f172a" stroke-width="1.6"></rect>
+                  <rect x="27.5" y="-1.5" width="23.5" height="3" fill="#ef4444" class="metro-livery-stripe"></rect>
+                  <rect x="31" y="-5" width="4" height="2.4" rx="0.6" fill="#38bdf8"></rect>
+                  <rect x="38" y="-5" width="4" height="2.4" rx="0.6" fill="#38bdf8"></rect>
+                  <rect x="31" y="2.6" width="4" height="2.4" rx="0.6" fill="#38bdf8"></rect>
+                  <rect x="38" y="2.6" width="4" height="2.4" rx="0.6" fill="#38bdf8"></rect>
+                  <!-- Aerodynamic Cab Windshield -->
+                  <path d="M 46 -5 L 50.5 -3.5 L 50.5 3.5 L 46 5 Z" fill="#0f172a"></path>
+                  <!-- Dual Bright Headlights -->
+                  <circle cx="51" cy="-3.5" r="1.4" fill="#fef08a"></circle>
+                  <circle cx="51" cy="3.5" r="1.4" fill="#fef08a"></circle>
+                  <!-- Active Braking LED Strip -->
+                  <rect id="metro-brake-fx" x="-57" y="-5.5" width="2.2" height="11" rx="1" fill="#ef4444" class="hidden"></rect>
+                </g>
+
+                <!-- Animated Station Door Open Glow Strips -->
+                <g id="metro-doors-open-fx" class="hidden">
+                  <line x1="-44" y1="-6.8" x2="-36" y2="-6.8" stroke="#10b981" stroke-width="2.2" stroke-linecap="round"></line>
+                  <line x1="-22" y1="-6.8" x2="-10" y2="-6.8" stroke="#10b981" stroke-width="2.2" stroke-linecap="round"></line>
+                  <line x1="6" y1="-6.8" x2="18" y2="-6.8" stroke="#10b981" stroke-width="2.2" stroke-linecap="round"></line>
+                  <line x1="32" y1="-6.8" x2="40" y2="-6.8" stroke="#10b981" stroke-width="2.2" stroke-linecap="round"></line>
+                  <line x1="-44" y1="6.8" x2="-36" y2="6.8" stroke="#10b981" stroke-width="2.2" stroke-linecap="round"></line>
+                  <line x1="-22" y1="6.8" x2="-10" y2="6.8" stroke="#10b981" stroke-width="2.2" stroke-linecap="round"></line>
+                  <line x1="6" y1="6.8" x2="18" y2="6.8" stroke="#10b981" stroke-width="2.2" stroke-linecap="round"></line>
+                  <line x1="32" y1="6.8" x2="40" y2="6.8" stroke="#10b981" stroke-width="2.2" stroke-linecap="round"></line>
+                </g>
+              </g>
+            </g>
+          </svg>
+        </div>
+
+        <!-- Right Sidebar: Station Inspector & Corridor Quick List -->
+        <aside id="map-sidebar-col" class="lg:col-span-3 space-y-3">
+          <!-- Station Inspector Card -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+              <span class="text-xs font-extrabold uppercase tracking-wider text-slate-500">Station Inspector</span>
+              <button onclick="toggleMapSidebar()" class="text-[11px] font-bold text-slate-400 hover:text-slate-700">✕ Hide</button>
+            </div>
+            <div id="station-inspector-body" class="space-y-2.5">
+              <p class="text-xs text-slate-500 leading-relaxed">Click any station dot on the map to inspect line connections, interchange transfers, and plan a journey.</p>
+            </div>
+          </div>
+
+          <!-- Corridor Quick Launchers -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-2.5 max-h-[44vh] overflow-y-auto custom-scrollbar">
+            <div class="text-xs font-extrabold uppercase tracking-wider text-slate-500">Operational Corridors (14)</div>
+            <div id="sidebar-corridor-list" class="space-y-1.5"></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- TAB 2: UPCOMING PHASE-IV, PHASE-VA, NMRC & GMRL CORRIDORS -->
+    <section id="tab-upcoming" class="tab-panel hidden space-y-4">
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-extrabold text-slate-900">Upcoming DMRC Phase-IV, Phase-VA, NMRC &amp; Gurugram Metro (GMRL)</h2>
+          <p class="text-xs text-slate-500 mt-0.5">7 Under-Construction / Approved Corridors • 144.511 km Total • Click any corridor to simulate a live train on the map</p>
+        </div>
+        <button onclick="viewAllUpcomingOnMap()" class="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition shadow">View All 7 Upcoming Lines on Map</button>
+      </div>
+      <div id="upcoming-cards-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </section>
+
+    <!-- TAB 3: ROUTE & OFFICIAL FARE PLANNER -->
+    <section id="tab-planner" class="tab-panel hidden space-y-4">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <!-- Planner Form -->
+        <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <div class="border-b border-slate-100 pb-3">
+            <h2 class="text-base font-extrabold text-slate-900">Journey &amp; Official Fare Calculator</h2>
+            <p class="text-xs text-slate-500">Exact DMRC (Aug 2025 revised slabs), Airport Express 7×7 matrix, NMRC Aqua, Rapid Metro &amp; NCRTC RRTS fares</p>
+          </div>
+
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Origin Station</label>
+              <input id="route-origin" type="text" list="all-stations-datalist" value="Rajiv Chowk" class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-red-500" />
+            </div>
+
+            <div class="flex justify-center">
+              <button onclick="swapRouteStations()" class="px-3 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700 transition">⇅ Swap Origin &amp; Destination</button>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Destination Station</label>
+              <input id="route-dest" type="text" list="all-stations-datalist" value="Noida Sector-62" class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-red-500" />
+            </div>
+
+            <div class="grid grid-cols-2 gap-2.5 pt-1">
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">Day Type</label>
+                <select id="fare-day-type" onchange="calculateRoute()" class="w-full px-2.5 py-2 text-xs font-semibold rounded-xl border border-slate-300 bg-white">
+                  <option value="weekday">Mon – Sat (Regular)</option>
+                  <option value="sunday">Sunday / National Holiday</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">Smart Card / MJQRT</label>
+                <select id="fare-time-type" onchange="calculateRoute()" class="w-full px-2.5 py-2 text-xs font-semibold rounded-xl border border-slate-300 bg-white">
+                  <option value="peak">Peak Hours (10% Off)</option>
+                  <option value="offpeak">Off-Peak Hours (20% Off)</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-bold text-slate-600 mb-1">Namo Bharat RRTS Coach Class</label>
+              <select id="rrts-coach-class" onchange="calculateRoute()" class="w-full px-2.5 py-2 text-xs font-semibold rounded-xl border border-slate-300 bg-white">
+                <option value="standard">Standard Coach (₹20 – ₹210)</option>
+                <option value="premium">Premium Coach (~1.2× Standard, ₹25 – ₹250)</option>
+              </select>
+            </div>
+
+            <div class="flex items-center justify-between pt-1">
+              <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+                <input id="route-include-upcoming" type="checkbox" onchange="calculateRoute()" class="rounded text-red-600 focus:ring-red-500" />
+                <span>Include Upcoming Ph-IV/VA, NMRC &amp; GMRL</span>
+              </label>
+              <select id="route-preference" onchange="calculateRoute()" class="px-2.5 py-1 text-xs font-bold rounded-lg border border-slate-300 bg-slate-50">
+                <option value="shortest">Shortest Route</option>
+                <option value="min_transfer">Minimum Interchanges</option>
+              </select>
+            </div>
+
+            <button onclick="calculateRoute()" class="w-full py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-extrabold shadow transition">Find Route &amp; Official Fare</button>
+          </div>
+
+          <!-- Official Fare Reference Card -->
+          <div class="bg-slate-50 rounded-xl p-3 border border-slate-200 text-[11px] space-y-1.5">
+            <div class="font-extrabold text-slate-800">Official Operator Fare &amp; Speed Rules</div>
+            <ul class="text-slate-600 space-y-1 list-disc pl-4">
+              <li><strong>DMRC Standard (w.e.f. 25 Aug 2025):</strong> 0–2 km ₹11 | 2–5 km ₹21 | 5–12 km ₹32 | 12–21 km ₹43 | 21–32 km ₹54 | &gt;32 km ₹64 (Sunday/Holiday ₹11–₹54).</li>
+              <li><strong>DMRC Airport Express:</strong> Exact station matrix ₹11 to ₹75 (New Delhi ↔ Yashobhoomi Dwarka Sec-25).</li>
+              <li><strong>NCRTC Namo Bharat RRTS (100 km/h avg):</strong> Station matrix ₹20–₹210 Standard (Premium ~1.2× up to ₹250; ~58 min end-to-end; 10% NCMC Card off).</li>
+              <li><strong>NCRTC Meerut Metro (55 km/h avg):</strong> Station matrix ₹20–₹60 (Meerut South ↔ Modipuram Depot in ~24 min; 10% NCMC Card off).</li>
+              <li><strong>NMRC Aqua Line &amp; Rapid Metro:</strong> Aqua Line ₹10–₹50 (1 to ≥15 stns) | Rapid Metro Gurugram ₹20–₹35.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Route Results Column -->
+        <div id="route-results-panel" class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm"></div>
+      </div>
+    </section>
+
+    <!-- TAB 4: NETWORK STATS -->
+    <section id="tab-stats" class="tab-panel hidden space-y-4">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+          <div class="text-[11px] font-bold uppercase text-slate-400">DMRC Operational</div>
+          <div class="text-2xl font-extrabold text-slate-900 mt-1">374.466 km</div>
+          <div class="text-xs text-emerald-600 font-semibold mt-0.5">271 Stations (Ph-I to IV)</div>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+          <div class="text-[11px] font-bold uppercase text-slate-400">Total NCR Network</div>
+          <div class="text-2xl font-extrabold text-red-600 mt-1">519.508 km</div>
+          <div class="text-xs text-slate-600 font-semibold mt-0.5">338 Stations (incl. NMRC &amp; RRTS)</div>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+          <div class="text-[11px] font-bold uppercase text-slate-400">NCRTC Namo Bharat</div>
+          <div class="text-2xl font-extrabold text-amber-600 mt-1">103.000 km</div>
+          <div class="text-xs text-slate-600 font-semibold mt-0.5">27 Stations (RRTS + Meerut Metro)</div>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+          <div class="text-[11px] font-bold uppercase text-slate-400">Upcoming Ph-IV/VA, NMRC &amp; GMRL</div>
+          <div class="text-2xl font-extrabold text-purple-600 mt-1">144.511 km</div>
+          <div class="text-xs text-slate-600 font-semibold mt-0.5">7 Dedicated Corridors</div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm overflow-x-auto">
+        <h3 class="text-sm font-extrabold text-slate-900 mb-3">Operational Network Summary (August 2026)</h3>
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="border-b border-slate-200 text-slate-500 uppercase text-[10px]">
+              <th class="py-2 px-3">Corridor / Line</th>
+              <th class="py-2 px-3">Terminals</th>
+              <th class="py-2 px-3">Operator</th>
+              <th class="py-2 px-3 text-right">Length (km)</th>
+              <th class="py-2 px-3 text-right">Stations</th>
+            </tr>
+          </thead>
+          <tbody id="stats-operational-tbody" class="divide-y divide-slate-100"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 5: STATION DIRECTORY -->
+    <section id="tab-directory" class="tab-panel hidden space-y-4">
+      <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-wrap items-center justify-between gap-3">
+        <input id="dir-search-input" type="text" placeholder="Search any station by name or line..." oninput="filterDirectory()" class="px-3.5 py-2 text-xs rounded-xl border border-slate-300 w-full sm:w-80 focus:outline-none focus:ring-2 focus:ring-red-500" />
+        <div class="flex flex-wrap items-center gap-1.5">
+          <button onclick="setDirFilter('all')" id="dir-btn-all" class="dir-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-white">All Stations</button>
+          <button onclick="setDirFilter('interchange')" id="dir-btn-interchange" class="dir-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700">Interchange Hubs</button>
+          <button onclick="setDirFilter('airport')" id="dir-btn-airport" class="dir-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700">Airport Links</button>
+          <button onclick="setDirFilter('upcoming')" id="dir-btn-upcoming" class="dir-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700">Upcoming Stations</button>
+        </div>
+      </div>
+      <div id="directory-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3"></div>
+    </section>
+
+  </main>
+
+  <datalist id="all-stations-datalist"></datalist>
+
+  <footer class="bg-white border-t border-slate-200 py-3 px-4 text-center text-[11px] text-slate-500">
+    DMRC Helpline: <strong class="text-slate-800">155370</strong> • Delhi Metro Sarthi App • Schematic Map Not to Scale (August 2026 Network Edition)
+  </footer>
+
+  <script>
+    // =========================================================================
+    // 1. CORRIDOR METADATA & COMPLETE STATION LISTS (OPERATIONAL + UPCOMING)
+    // =========================================================================
+    const LINE_META = {
+      red: {
+        id: 'red', name: 'Line 1 - Red Line', shortName: 'Red Line 1', operator: 'DMRC',
+        color: '#EF4444', textColor: '#FFFFFF', lengthKm: 34.549, officialStations: 29, status: 'operational',
+        terminals: 'Rithala ↔ Shaheed Sthal (New Bus Adda)'
+      },
+      yellow: {
+        id: 'yellow', name: 'Line 2 - Yellow Line', shortName: 'Yellow Line 2', operator: 'DMRC',
+        color: '#EAB308', textColor: '#0F172A', lengthKm: 49.019, officialStations: 37, status: 'operational',
+        terminals: 'Samaypur Badli ↔ Millennium City Centre Gurugram'
+      },
+      blue: {
+        id: 'blue', name: 'Line 3 - Blue Line', shortName: 'Blue Line 3', operator: 'DMRC',
+        color: '#2563EB', textColor: '#FFFFFF', lengthKm: 56.114, officialStations: 50, status: 'operational',
+        terminals: 'Dwarka Sector-21 ↔ Noida Electronic City'
+      },
+      blue_branch: {
+        id: 'blue_branch', name: 'Line 4 - Blue Branch', shortName: 'Blue Branch 4', operator: 'DMRC',
+        color: '#0284C7', textColor: '#FFFFFF', lengthKm: 8.511, officialStations: 8, status: 'operational',
+        terminals: 'Yamuna Bank ↔ Vaishali'
+      },
+      green: {
+        id: 'green', name: 'Line 5 - Green Line', shortName: 'Green Line 5', operator: 'DMRC',
+        color: '#16A34A', textColor: '#FFFFFF', lengthKm: 28.781, officialStations: 24, status: 'operational',
+        terminals: 'Inderlok / Kirti Nagar ↔ Brig. Hoshiar Singh'
+      },
+      violet: {
+        id: 'violet', name: 'Line 6 - Violet Line', shortName: 'Violet Line 6', operator: 'DMRC',
+        color: '#7C3AED', textColor: '#FFFFFF', lengthKm: 46.341, officialStations: 34, status: 'operational',
+        terminals: 'Kashmere Gate ↔ Raja Nahar Singh (Ballabhgarh)'
+      },
+      pink: {
+        id: 'pink', name: 'Line 7 - Pink Line (Ring)', shortName: 'Pink Line 7', operator: 'DMRC',
+        color: '#EC4899', textColor: '#FFFFFF', lengthKm: 71.548, officialStations: 45, status: 'operational',
+        terminals: 'Majlis Park ↔ Shiv Vihar (Complete Ring)'
+      },
+      magenta: {
+        id: 'magenta', name: 'Line 8 - Magenta Line', shortName: 'Magenta Line 8', operator: 'DMRC',
+        color: '#C026D3', textColor: '#FFFFFF', lengthKm: 49.195, officialStations: 33, status: 'operational',
+        terminals: 'Krishna Park Extn. ↔ Botanical Garden & Deepali Chowk ↔ Majlis Park'
+      },
+      grey: {
+        id: 'grey', name: 'Line 9 - Grey Line', shortName: 'Grey Line 9', operator: 'DMRC',
+        color: '#64748B', textColor: '#FFFFFF', lengthKm: 5.491, officialStations: 4, status: 'operational',
+        terminals: 'Dwarka ↔ Dhansa Bus Stand'
+      },
+      orange: {
+        id: 'orange', name: 'Airport Express (Orange)', shortName: 'Airport Express', operator: 'DMRC',
+        color: '#F97316', textColor: '#FFFFFF', lengthKm: 24.917, officialStations: 7, status: 'operational',
+        terminals: 'New Delhi ↔ Yashobhoomi Dwarka Sec-25'
+      },
+      aqua: {
+        id: 'aqua', name: 'Aqua Line (NMRC)', shortName: 'Aqua Line', operator: 'NMRC',
+        color: '#06B6D4', textColor: '#0F172A', lengthKm: 29.168, officialStations: 21, status: 'operational',
+        terminals: 'Noida Sector-51 ↔ Depot Station (Greater Noida)'
+      },
+      rapid: {
+        id: 'rapid', name: 'Rapid Metro (Gurugram)', shortName: 'Rapid Metro', operator: 'DMRC/RMGL',
+        color: '#475569', textColor: '#FFFFFF', lengthKm: 12.874, officialStations: 11, status: 'operational',
+        terminals: 'Sector 55-56 ↔ Sikanderpur ↔ Cyber City Loop'
+      },
+      rrts: {
+        id: 'rrts', name: 'Namo Bharat RRTS', shortName: 'Namo Bharat RRTS', operator: 'NCRTC',
+        color: '#B45309', textColor: '#FFFFFF', lengthKm: 82.000, officialStations: 15, status: 'operational',
+        terminals: 'Sarai Kale Khan - Nizamuddin ↔ Modipuram'
+      },
+      meerut: {
+        id: 'meerut', name: 'Meerut Metro', shortName: 'Meerut Metro', operator: 'NCRTC',
+        color: '#0EA5E9', textColor: '#FFFFFF', lengthKm: 21.000, officialStations: 12, status: 'operational',
+        terminals: 'Meerut South ↔ Modipuram Depot'
+      },
+      // 6 UPCOMING CORRIDORS (SOLID FUNCTIONAL LINES WHEN SELECTED)
+      up_magenta_ext: {
+        id: 'up_magenta_ext', name: 'Magenta Line Ext. (Ph-IV & V-A)', shortName: 'Magenta Ext. (Ph-IV/VA)', operator: 'DMRC',
+        color: '#C026D3', textColor: '#FFFFFF', lengthKm: 39.818, officialStations: 31, status: 'upcoming',
+        terminals: 'Krishna Park Extn. ↔ Deepali Chowk • Majlis Park & Inderlok ↔ Central Vista ↔ Indraprastha'
+      },
+      up_golden: {
+        id: 'up_golden', name: 'Golden Line 10 (Unified Ph-IV & V-A)', shortName: 'Golden Line 10', operator: 'DMRC',
+        color: '#D97706', textColor: '#FFFFFF', lengthKm: 29.785, officialStations: 19, status: 'upcoming',
+        terminals: 'Kalindi Kunj ↔ Tughlakabad ↔ Aerocity ↔ Terminal 1-IGI Airport'
+      },
+      up_golden_branch: {
+        id: 'up_golden_branch', name: 'Golden Line Branch (Phase-IV)', shortName: 'Golden Branch (Ph-IV)', operator: 'DMRC',
+        color: '#B45309', textColor: '#FFFFFF', lengthKm: 8.385, officialStations: 8, status: 'upcoming',
+        terminals: 'Lajpat Nagar ↔ Saket G Block'
+      },
+      up_red_ext: {
+        id: 'up_red_ext', name: 'Red Line Ext. Narela-Kundli (Ph-IV)', shortName: 'Red Narela-Kundli', operator: 'DMRC',
+        color: '#BE123C', textColor: '#FFFFFF', lengthKm: 26.463, officialStations: 21, status: 'upcoming',
+        terminals: 'Rithala ↔ Narela ↔ Nathupur / Kundli'
+      },
+      up_aqua_ext: {
+        id: 'up_aqua_ext', name: 'NMRC Aqua Line Ext. (Botanical Garden – Sec 142)', shortName: 'Aqua Ext. (Botanical–142)', operator: 'NMRC',
+        color: '#0891B2', textColor: '#FFFFFF', lengthKm: 11.560, officialStations: 9, status: 'upcoming',
+        terminals: 'Botanical Garden ↔ Noida Sector-142'
+      },
+      up_gmrl: {
+        id: 'up_gmrl', name: 'Gurugram Metro (GMRL Corridor + Sec 101 Spur)', shortName: 'Gurugram Metro (GMRL)', operator: 'GMRL',
+        color: '#0284C7', textColor: '#FFFFFF', lengthKm: 28.500, officialStations: 27, status: 'upcoming',
+        terminals: 'Millennium City Centre Gurugram ↔ Old Gurugram ↔ Palam Vihar ↔ Cyber City'
+      }
+    };
+
+    const CORRIDOR_STATIONS = {
+      red: [
+        'Rithala', 'Rohini West', 'Rohini East', 'Pitampura', 'Kohat Enclave',
+        'Netaji Subhash Place', 'Keshav Puram', 'Kanhaiya Nagar', 'Inderlok',
+        'Shastri Nagar', 'Pratap Nagar', 'Pulbangash', 'Tis Hazari', 'Kashmere Gate',
+        'Shastri Park', 'Seelampur', 'Welcome', 'Shahdara', 'Mansarovar Park',
+        'Jhilmil', 'Dilshad Garden', 'Shaheed Nagar', 'Raj Bagh', 'Major Mohit Sharma Rajendra Nagar',
+        'Shyam Park', 'Mohan Nagar', 'Arthala', 'Hindon River', 'Shaheed Sthal (New Bus Adda)'
+      ],
+      yellow: [
+        'Samaypur Badli', 'Rohini Sector-18, 19', 'Haiderpur Badli Mor', 'Jahangirpuri',
+        'Adarsh Nagar', 'Azadpur', 'Model Town', 'Guru Tegh Bahadur Nagar', 'Vishwavidyalaya',
+        'Vidhan Sabha', 'Civil Lines', 'Kashmere Gate', 'Chandni Chowk', 'Chawri Bazar',
+        'New Delhi', 'Rajiv Chowk', 'Patel Chowk', 'Central Secretariat', 'Udyog Bhawan',
+        'Lok Kalyan Marg', 'Jor Bagh', 'Dilli Haat - INA', 'AIIMS', 'Green Park',
+        'Hauz Khas', 'Malviya Nagar', 'Saket', 'Qutab Minar', 'Chhatarpur',
+        'Sultanpur', 'Ghitorni', 'Arjan Garh', 'Guru Dronacharya', 'Sikanderpur',
+        'M.G. Road', 'IFFCO Chowk', 'Millennium City Centre Gurugram'
+      ],
+      blue: [
+        'Dwarka Sector-21', 'Dwarka Sector-8', 'Dwarka Sector-9', 'Dwarka Sector-10',
+        'Dwarka Sector-11', 'Dwarka Sector-12', 'Dwarka Sector-13', 'Dwarka Sector-14',
+        'Dwarka', 'Dwarka Mor', 'Nawada', 'Uttam Nagar West', 'Uttam Nagar East',
+        'Janakpuri West', 'Janakpuri East', 'Tilak Nagar', 'Subhash Nagar', 'Tagore Garden',
+        'Rajouri Garden', 'Ramesh Nagar', 'Moti Nagar', 'Kirti Nagar', 'Shadipur',
+        'Patel Nagar', 'Rajendra Place', 'Karol Bagh', 'Jhandewalan', 'R.K. Ashram Marg',
+        'Rajiv Chowk', 'Barakhamba Road', 'Mandi House', 'Supreme Court', 'Indraprastha',
+        'Yamuna Bank', 'Akshardham', 'Mayur Vihar-I', 'Mayur Vihar Extension', 'New Ashok Nagar',
+        'Noida Sector-15', 'Noida Sector-16', 'Noida Sector-18', 'Botanical Garden',
+        'Golf Course', 'Noida City Centre', 'Noida Sector-34', 'Noida Sector-52',
+        'Noida Sector-61', 'Noida Sector-59', 'Noida Sector-62', 'Noida Electronic City'
+      ],
+      blue_branch: [
+        'Yamuna Bank', 'Laxmi Nagar', 'Nirman Vihar', 'Preet Vihar',
+        'Karkarduma', 'Anand Vihar ISBT', 'Kaushambi', 'Vaishali'
+      ],
+      green: [
+        'Inderlok', 'Ashok Park Main', 'Punjabi Bagh', 'Punjabi Bagh West', 'Shivaji Park',
+        'Madipur', 'Paschim Vihar East', 'Paschim Vihar West', 'Peeragarhi', 'Udyog Nagar',
+        'Maharaja Surajmal Stadium', 'Nangloi', 'Nangloi Railway Station', 'Rajdhani Park',
+        'Mundka', 'Mundka Industrial Area (MIA)', 'Ghevra Metro Station', 'Tikri Kalan',
+        'Tikri Border', 'Pandit Shree Ram Sharma', 'Bahadurgarh City', 'Brig. Hoshiar Singh'
+      ],
+      green_kirti_spur: [
+        'Kirti Nagar', 'Satguru Ram Singh Marg', 'Ashok Park Main'
+      ],
+      violet: [
+        'Kashmere Gate', 'Lal Quila', 'Jama Masjid', 'Delhi Gate', 'ITO', 'Mandi House',
+        'Janpath', 'Central Secretariat', 'Khan Market', 'JLN Stadium', 'Jangpura',
+        'Lajpat Nagar', 'Moolchand', 'Kailash Colony', 'Nehru Place', 'Kalkaji Mandir',
+        'Govind Puri', 'Harkesh Nagar Okhla', 'Jasola Apollo', 'Sarita Vihar',
+        'Mohan Estate', 'Tughlakabad', 'Badarpur Border', 'Sarai', 'NHPC Chowk',
+        'Mewala Maharajpur', 'Sector-28 Faridabad', 'Badkal Mor', 'Old Faridabad',
+        'Neelam Chowk Ajronda', 'Bata Chowk', 'Escorts Mujesar', 'Sant Surdas (Sihi)',
+        'Raja Nahar Singh (Ballabhgarh)'
+      ],
+      pink: [
+        'Majlis Park', 'Azadpur', 'Shalimar Bagh', 'Netaji Subhash Place', 'Shakurpur',
+        'Punjabi Bagh West', 'ESI-Basaidarapur', 'Rajouri Garden', 'Mayapuri', 'Naraina Vihar',
+        'Delhi Cantt.', 'Durgabai Deshmukh South Campus', 'Sir M. Vishweshwaraiah Moti Bagh',
+        'Bhikaji Cama Place', 'Sarojini Nagar', 'Dilli Haat - INA', 'South Extension',
+        'Lajpat Nagar', 'Vinobapuri', 'Ashram', 'Sarai Kale Khan - Nizamuddin',
+        'Mayur Vihar-I', 'Mayur Vihar Pocket-1', 'Trilokpuri-Sanjay Lake',
+        'East Vinod Nagar-Mayur Vihar II', 'Mandawali - West Vinod Nagar', 'I.P. Extension',
+        'Anand Vihar ISBT', 'Karkarduma', 'Karkarduma Court', 'Krishna Nagar',
+        'East Azad Nagar', 'Welcome', 'Jafrabad', 'Maujpur-Babarpur',
+        'Yamuna Vihar', 'Bhajanpura', 'Khajuri Khas', 'Nanaksar-Sonia Vihar',
+        'Soorghat', 'Jagatpur-Wazirabad', 'Jharoda Majra', 'Burari', 'Majlis Park'
+      ],
+      magenta: [
+        'Krishna Park Extn.', 'Janakpuri West', 'Dabri Mor - Janakpuri South', 'Dashrathpuri',
+        'Palam', 'Sadar Bazar Cantonment', 'Terminal 1-IGI Airport', 'Shankar Vihar',
+        'Vasant Vihar', 'Munirka', 'R.K. Puram', 'IIT', 'Hauz Khas',
+        'Panchsheel Park', 'Chirag Delhi', 'Greater Kailash', 'Nehru Enclave',
+        'Kalkaji Mandir', 'Okhla NSIC', 'Sukhdev Vihar', 'Jamia Millia Islamia',
+        'Okhla Vihar', 'Jasola Vihar Shaheen Bagh', 'Kalindi Kunj', 'Okhla Bird Sanctuary',
+        'Botanical Garden'
+      ],
+      magenta_north_op: [
+        'Deepali Chowk', 'Madhuban Chowk', 'Prashant Vihar', 'North Pitampura',
+        'Haiderpur Badli Mor', 'Bhalswa', 'Majlis Park'
+      ],
+      pink_shiv_maujpur: [
+        'Maujpur-Babarpur', 'Gokulpuri', 'Johri Enclave', 'Shiv Vihar'
+      ],
+      grey: [
+        'Dwarka', 'Nangli', 'Najafgarh', 'Dhansa Bus Stand'
+      ],
+      orange: [
+        'New Delhi', 'Shivaji Stadium', 'Dhaula Kuan', 'Delhi Aerocity',
+        'Airport (T-3)', 'Dwarka Sector-21', 'Yashobhoomi Dwarka Sec-25'
+      ],
+      aqua: [
+        'Noida Sector-51', 'Noida Sector-50', 'Noida Sector-76', 'Noida Sector-101',
+        'Noida Sector-81', 'NSEZ', 'Noida Sector-83', 'Noida Sector-137',
+        'Noida Sector-142', 'Noida Sector-143', 'Noida Sector-144', 'Noida Sector-145',
+        'Noida Sector-146', 'Noida Sector-147', 'Noida Sector-148', 'Knowledge Park-II',
+        'Pari Chowk', 'Alpha-1', 'Delta-1', 'GNIDA Office', 'Depot Station'
+      ],
+      rapid: [
+        'Sector 55-56', 'Sector-54 Chowk', 'Sector-53-54', 'Sector-42-43',
+        'Phase-1', 'Sikanderpur', 'Phase-2', 'Belvedere Towers',
+        'Cyber City', 'Moulsari Avenue', 'Phase-3', 'Phase-2'
+      ],
+      rrts: [
+        'Sarai Kale Khan - Nizamuddin', 'New Ashok Nagar', 'Anand Vihar ISBT', 'Sahibabad',
+        'Ghaziabad', 'Guldhar', 'Duhai', 'Duhai Depot', 'Murad Nagar', 'Modinagar South',
+        'Modinagar North', 'Meerut South', 'Shatabdi Nagar', 'Begumpul', 'Modipuram'
+      ],
+      rrts_main_line: [
+        'Sarai Kale Khan - Nizamuddin', 'New Ashok Nagar', 'Anand Vihar ISBT', 'Sahibabad',
+        'Ghaziabad', 'Guldhar', 'Duhai', 'Murad Nagar', 'Modinagar South',
+        'Modinagar North', 'Meerut South', 'Shatabdi Nagar', 'Begumpul', 'Modipuram'
+      ],
+      rrts_duhai_spur: [
+        'Duhai', 'Duhai Depot'
+      ],
+      meerut: [
+        'Meerut South', 'Partapur', 'Rithani', 'Shatabdi Nagar', 'Brahmpuri',
+        'Meerut Central', 'Bhaisali', 'Begumpul', 'MES Colony', 'Daurli',
+        'Meerut North', 'Modipuram', 'Modipuram Depot'
+      ],
+      // UPCOMING CORRIDORS
+      up_magenta_ext: [
+        'Majlis Park', 'Azadpur', 'Ashok Vihar', 'Derawal Nagar', 'Ghanta Ghar',
+        'Pulbangash', 'Sadar Bazar Metro Station', 'Nabi Karim', 'R.K. Ashram Marg',
+        'Shivaji Stadium', 'Yuge Yugeen Bharat', 'Central Secretariat', 'CCS Building',
+        'India Gate', 'War Memorial-High Court', 'Baroda House', 'Bharat Mandapam', 'Indraprastha'
+      ],
+      up_magenta_inderlok: [
+        'Inderlok', 'Daya Basti', 'Sarai Rohilla', 'Ajmal Khan Park',
+        'Jhandewalan Mandir', 'Nabi Karim', 'New Delhi', 'Delhi Gate',
+        'Delhi Sachivalaya-IG Stadium', 'Indraprastha'
+      ],
+      up_magenta_west: [
+        'Krishna Park Extn.', 'Keshopur', 'Paschim Vihar', 'Peeragarhi',
+        'Mangolpuri Metro Station', 'West Enclave', 'Pushpanjali',
+        'Dr. Baba Saheb Ambedkar Hospital', 'Deepali Chowk'
+      ],
+      up_golden: [
+        'Kalindi Kunj', 'Madanpur Khadar', 'Sarita Vihar Depot', 'Tughlakabad',
+        'Tughlakabad Railway Colony', 'Anandmayee Marg Jn.', 'Sangam Vihar-Tigri',
+        'Khanpur', 'Ambedkar Nagar', 'Saket G Block', 'Neb Sarai', 'IGNOU',
+        'Chhatarpur Mandir', 'Chhatarpur', 'Kishangarh', 'Vasant Kunj',
+        'Mahipalpur', 'Delhi Aerocity', 'Terminal 1-IGI Airport'
+      ],
+      up_golden_branch: [
+        'Lajpat Nagar', 'Andrews Ganj', 'Greater Kailash-1', 'Chirag Delhi',
+        'Pushpa Bhawan', 'Saket District Centre', 'Pushp Vihar', 'Saket G Block'
+      ],
+      up_red_ext: [
+        'Rithala', 'Rohini Sector-25', 'Rohini Sector-26', 'Rohini Sector-31',
+        'Rohini Sector-32', 'Rohini Sector-36', 'Barwala', 'Rohini Sector-35',
+        'Rohini Sector-34', 'Bawana Ind. Area-1 Sector-3, 4', 'Bawana Ind. Area-1 Sector-1, 2',
+        'Bawana JJ Colony', 'Sanoth', 'New Sanoth', 'Depot Station Narela',
+        'Bhorgarh Village', 'Anaj Mandi Narela', 'Narela DDA Sports Complex',
+        'Narela', 'Narela Sector-5', 'Kundli', 'Nathupur'
+      ],
+      up_aqua_ext: [
+        'Botanical Garden', 'Noida Sector-44', 'Noida Office (Sector-96)',
+        'Noida Sector-97', 'Noida Sector-105', 'Noida Sector-108',
+        'Noida Sector-93', 'Panchsheel Balak Inter College', 'Noida Sector-142'
+      ],
+      up_gmrl: [
+        'Millennium City Centre Gurugram', 'Sector 45', 'Cyber Park',
+        'Dist. Shopping Centre Sector 47', 'Subhash Chowk', 'Sector 48',
+        'Sector 72A', 'Hero Honda Chowk', 'Udyog Vihar Phase-6', 'Sector 10',
+        'Sector 37', 'Basai Village', 'Sector 9', 'Sector 7', 'Sector 4',
+        'Sector 5', 'Ashok Vihar (Gurugram)', 'Sector 3', 'Bajghera Road',
+        'Palam Vihar Extension', 'Palam Vihar', 'Sector 23A', 'Sector 22',
+        'Udyog Vihar Phase-4', 'Udyog Vihar Phase-5', 'Cyber City'
+      ],
+      up_gmrl_spur: [
+        'Basai Village', 'Sector 9', 'Sector 101'
+      ]
+    };
+
+    const SUB_SEGMENT_PARENT = {
+      green_kirti_spur: 'green',
+      magenta_north_op: 'magenta',
+      pink_shiv_maujpur: 'pink',
+      rrts_main_line: 'rrts',
+      rrts_duhai_spur: 'rrts',
+      up_magenta_inderlok: 'up_magenta_ext',
+      up_magenta_west: 'up_magenta_ext',
+      up_gmrl_spur: 'up_gmrl'
+    };
+
+    const QUICK_SECTION_FILTERS = [
+      {
+        id: 'sec_deepali_majlis',
+        label: 'Deepali Chowk to Majlis Park',
+        parentLineId: 'magenta',
+        corridorKey: 'magenta_north_op',
+        color: '#C026D3',
+        textColor: '#FFFFFF'
+      },
+      {
+        id: 'sec_shiv_maujpur',
+        label: 'Shiv Vihar to Maujpur Babarpur',
+        parentLineId: 'pink',
+        corridorKey: 'pink_shiv_maujpur',
+        color: '#EC4899',
+        textColor: '#FFFFFF'
+      }
+    ];
+
+    const SKYWALK_LINKS = [
+      {
+        from: 'Noida Sector-52',
+        to: 'Noida Sector-51',
+        distanceMeters: 300,
+        walkMins: 4,
+        label: '⇄ Skywalk (Sec 51–52)'
+      }
+    ];
+
+    const CORRIDOR_KM_PER_HOP = {
+      red: 1.23, yellow: 1.36, blue: 1.145, blue_branch: 1.21, green: 1.31,
+      violet: 1.40, pink: 1.59, magenta: 1.54, grey: 1.83, orange: 4.15,
+      aqua: 1.46, rapid: 1.17, rrts: 6.31, meerut: 1.75,
+      up_magenta_ext: 1.33, up_golden: 1.65,
+      up_golden_branch: 1.19, up_red_ext: 1.26, up_aqua_ext: 1.44, up_gmrl: 1.10
+    };
+
+    // Exact NCRTC Namo Bharat RRTS Official Station-to-Station Standard Fare Matrix (2026, in ₹)
+    const RRTS_MATRIX_STATIONS = [
+      'Sarai Kale Khan - Nizamuddin', 'New Ashok Nagar', 'Anand Vihar ISBT', 'Sahibabad',
+      'Ghaziabad', 'Guldhar', 'Duhai', 'Duhai Depot', 'Murad Nagar',
+      'Modinagar South', 'Modinagar North', 'Meerut South', 'Shatabdi Nagar',
+      'Begumpul', 'Modipuram'
+    ];
+    const RRTS_STANDARD_FARE_MATRIX = [
+      // SKK, NAN, AVH, SHB, GZB, GLD, DUH, DHD, MRN, MNS, MNN, MRS, SBN, BGP, MDP
+      [  20,  30,  40,  50,  60,  80,  80,  90, 120, 140, 150, 160, 180, 200, 210 ], // Sarai Kale Khan
+      [  30,  20,  30,  40,  60,  70,  80,  90, 100, 120, 130, 150, 170, 180, 200 ], // New Ashok Nagar
+      [  40,  30,  20,  30,  40,  60,  60,  70,  90, 100, 110, 130, 150, 160, 180 ], // Anand Vihar ISBT
+      [  50,  40,  30,  20,  30,  40,  50,  60,  60,  80,  90, 110, 130, 150, 160 ], // Sahibabad
+      [  60,  60,  40,  30,  20,  30,  40,  50,  40,  60,  80, 100, 120, 130, 150 ], // Ghaziabad
+      [  80,  70,  60,  40,  30,  20,  20,  30,  30,  50,  60,  80, 100, 110, 140 ], // Guldhar
+      [  80,  80,  60,  50,  40,  20,  20,  20,  30,  40,  50,  70,  90, 100, 120 ], // Duhai
+      [  90,  90,  70,  60,  50,  30,  20,  20,  30,  40,  60,  80, 100, 110, 130 ], // Duhai Depot
+      [ 120, 100,  90,  60,  40,  30,  30,  30,  20,  20,  30,  60,  70,  90, 110 ], // Murad Nagar
+      [ 140, 120, 100,  80,  60,  50,  40,  40,  20,  20,  20,  40,  60,  70,  90 ], // Modinagar South
+      [ 150, 130, 110,  90,  80,  60,  50,  60,  30,  20,  20,  30,  50,  60,  80 ], // Modinagar North
+      [ 160, 150, 130, 110, 100,  80,  70,  80,  60,  40,  30,  20,  30,  40,  60 ], // Meerut South
+      [ 180, 170, 150, 130, 120, 100,  90, 100,  70,  60,  50,  30,  20,  30,  50 ], // Shatabdi Nagar
+      [ 200, 180, 160, 150, 130, 110, 100, 110,  90,  70,  60,  40,  30,  20,  30 ], // Begumpul
+      [ 210, 200, 180, 160, 150, 140, 120, 130, 110,  90,  80,  60,  50,  30,  20 ]  // Modipuram
+    ];
+
+    // Exact NCRTC Meerut Metro Official Station-to-Station Fare Matrix (2026, ₹20 to ₹60)
+    const MEERUT_MATRIX_STATIONS = [
+      'Meerut South', 'Partapur', 'Rithani', 'Shatabdi Nagar', 'Brahmpuri',
+      'Meerut Central', 'Bhaisali', 'Begumpul', 'MES Colony', 'Daurli',
+      'Meerut North', 'Modipuram', 'Modipuram Depot'
+    ];
+    const MEERUT_FARE_MATRIX = [
+      // MRS, PRT, RTH, SBN, BRP, MRC, BHS, BGP, MES, DRL, MRN, MDP, MDD
+      [  20,  20,  20,  30,  30,  30,  40,  40,  50,  50,  50,  60,  60 ], // Meerut South
+      [  20,  20,  20,  20,  30,  30,  30,  30,  40,  50,  50,  50,  60 ], // Partapur
+      [  20,  20,  20,  20,  20,  20,  30,  30,  30,  50,  50,  50,  50 ], // Rithani
+      [  30,  20,  20,  20,  20,  20,  30,  30,  30,  40,  40,  50,  50 ], // Shatabdi Nagar
+      [  30,  30,  20,  20,  20,  20,  20,  20,  30,  30,  30,  50,  50 ], // Brahmpuri
+      [  30,  30,  20,  20,  20,  20,  20,  20,  20,  30,  30,  40,  40 ], // Meerut Central
+      [  40,  30,  30,  30,  20,  20,  20,  20,  20,  30,  30,  30,  40 ], // Bhaisali
+      [  40,  30,  30,  30,  20,  20,  20,  20,  20,  20,  30,  30,  30 ], // Begumpul
+      [  50,  40,  30,  30,  30,  20,  20,  20,  20,  20,  20,  30,  30 ], // MES Colony
+      [  50,  50,  50,  40,  30,  30,  30,  20,  20,  20,  20,  20,  30 ], // Daurli
+      [  50,  50,  50,  40,  30,  30,  30,  30,  20,  20,  20,  20,  20 ], // Meerut North
+      [  60,  50,  50,  50,  50,  40,  30,  30,  30,  20,  20,  20,  20 ], // Modipuram
+      [  60,  60,  50,  50,  50,  40,  40,  30,  30,  30,  20,  20,  20 ]  // Modipuram Depot
+    ];
+
+    // Exact DMRC Airport Express Line (Orange Line) 7x7 Official Fare Matrix (Aug 2025)
+    const ORANGE_STATIONS = [
+      'New Delhi', 'Shivaji Stadium', 'Dhaula Kuan', 'Delhi Aerocity',
+      'Airport (T-3)', 'Dwarka Sector-21', 'Yashobhoomi Dwarka Sec-25'
+    ];
+    const ORANGE_FARE_MATRIX = [
+      [11, 11, 32, 54, 64, 64, 75],
+      [11, 11, 21, 43, 54, 64, 75],
+      [32, 21, 11, 21, 32, 43, 54],
+      [54, 43, 21, 11, 11, 32, 43],
+      [64, 54, 32, 11, 11, 21, 32],
+      [64, 64, 43, 32, 21, 11, 11],
+      [75, 75, 54, 43, 32, 11, 11]
+    ];
+
+    // =========================================================================
+    // 2. SCHEMATIC COORDINATE GENERATOR & GRAPH INDEXING
+    // =========================================================================
+    const STATION_COORDS = {};
+    const STATION_LINES = {};
+    let ALL_STATIONS = [];
+
+    function getCanonicalLineId(rawLid) {
+      return SUB_SEGMENT_PARENT[rawLid] || rawLid;
+    }
+
+    function setPoly(names, pts) {
+      if (!names || names.length === 0) return;
+      if (names.length === 1) {
+        if (!STATION_COORDS[names[0]]) STATION_COORDS[names[0]] = { x: pts[0][0], y: pts[0][1] };
+        return;
+      }
+      const segLens = [];
+      let totalLen = 0;
+      for (let i = 0; i < pts.length - 1; i++) {
+        const dx = pts[i + 1][0] - pts[i][0];
+        const dy = pts[i + 1][1] - pts[i][1];
+        const d = Math.hypot(dx, dy);
+        segLens.push(d);
+        totalLen += d;
+      }
+      for (let idx = 0; idx < names.length; idx++) {
+        const st = names[idx];
+        if (STATION_COORDS[st]) continue;
+        const targetDist = (idx / (names.length - 1)) * totalLen;
+        let acc = 0;
+        let placed = false;
+        for (let s = 0; s < segLens.length; s++) {
+          if (acc + segLens[s] >= targetDist || s === segLens.length - 1) {
+            const ratio = segLens[s] === 0 ? 0 : (targetDist - acc) / segLens[s];
+            STATION_COORDS[st] = {
+              x: Math.round(pts[s][0] + (pts[s + 1][0] - pts[s][0]) * ratio),
+              y: Math.round(pts[s][1] + (pts[s + 1][1] - pts[s][1]) * ratio)
+            };
+            placed = true;
+            break;
+          }
+          acc += segLens[s];
+        }
+        if (!placed) {
+          const last = pts[pts.length - 1];
+          STATION_COORDS[st] = { x: last[0], y: last[1] };
+        }
+      }
+    }
+
+    function buildSchematicCoordinates() {
+      // Clear previous coordinates to rebuild clean orthogonal/45-degree DMRC schematic geometry
+      Object.keys(STATION_COORDS).forEach(k => delete STATION_COORDS[k]);
+
+      // Core Official DMRC Schematic Interchange Anchors
+      Object.assign(STATION_COORDS, {
+        'Kashmere Gate': { x: 1420, y: 840 },
+        'New Delhi': { x: 1320, y: 1060 },
+        'Rajiv Chowk': { x: 1320, y: 1180 },
+        'Central Secretariat': { x: 1320, y: 1360 },
+        'Mandi House': { x: 1480, y: 1220 },
+        'ITO': { x: 1520, y: 1120 },
+        'Indraprastha': { x: 1640, y: 1220 },
+        'Yamuna Bank': { x: 1780, y: 1220 },
+
+        'Inderlok': { x: 980, y: 840 },
+        'Ashok Park Main': { x: 880, y: 920 },
+        'Netaji Subhash Place': { x: 880, y: 660 },
+        'Azadpur': { x: 1160, y: 520 },
+        'Haiderpur Badli Mor': { x: 1020, y: 380 },
+        'Majlis Park': { x: 1240, y: 420 },
+
+        'Punjabi Bagh West': { x: 800, y: 1000 },
+        'Kirti Nagar': { x: 890, y: 1180 },
+        'Rajouri Garden': { x: 650, y: 1180 },
+        'Janakpuri West': { x: 440, y: 1280 },
+        'Krishna Park Extn.': { x: 440, y: 1180 },
+        'Peeragarhi': { x: 600, y: 980 },
+        'Deepali Chowk': { x: 720, y: 660 },
+
+        'Dwarka': { x: 220, y: 1500 },
+        'Dwarka Sector-21': { x: 360, y: 1800 },
+        'Delhi Aerocity': { x: 780, y: 1800 },
+        'Dhaula Kuan': { x: 960, y: 1540 },
+
+        'Dilli Haat - INA': { x: 1320, y: 1620 },
+        'Hauz Khas': { x: 1320, y: 1840 },
+        'Lajpat Nagar': { x: 1580, y: 1620 },
+        'Kalkaji Mandir': { x: 1680, y: 1840 },
+        'Tughlakabad': { x: 1880, y: 2100 },
+        'Kalindi Kunj': { x: 2140, y: 1900 },
+        'Botanical Garden': { x: 2260, y: 1680 },
+
+        'Mayur Vihar-I': { x: 1880, y: 1380 },
+        'New Ashok Nagar': { x: 1995, y: 1485 },
+        'Anand Vihar ISBT': { x: 2060, y: 1100 },
+        'Karkarduma': { x: 1960, y: 1020 },
+        'Welcome': { x: 1800, y: 800 },
+        'Maujpur-Babarpur': { x: 1880, y: 640 },
+        'Shiv Vihar': { x: 2040, y: 480 },
+
+        'Chhatarpur': { x: 1240, y: 2140 },
+        'Sikanderpur': { x: 1060, y: 2260 },
+        'Saket G Block': { x: 1460, y: 2080 },
+
+        'Noida Sector-52': { x: 2560, y: 1520 },
+        'Noida Sector-51': { x: 2620, y: 1590 },
+        'Noida Sector-142': { x: 2780, y: 2000 }
+      });
+
+      // Line 2 - Yellow Line (North-South Central Spine)
+      setPoly(['Samaypur Badli', 'Rohini Sector-18, 19', 'Haiderpur Badli Mor'], [[960, 280], [1020, 380]]);
+      setPoly(['Haiderpur Badli Mor', 'Jahangirpuri', 'Adarsh Nagar', 'Azadpur'], [[1020, 380], [1160, 520]]);
+      setPoly(['Azadpur', 'Model Town', 'Guru Tegh Bahadur Nagar', 'Vishwavidyalaya', 'Vidhan Sabha', 'Civil Lines', 'Kashmere Gate'], [[1160, 520], [1360, 620], [1420, 840]]);
+      setPoly(['Kashmere Gate', 'Chandni Chowk', 'Chawri Bazar', 'New Delhi', 'Rajiv Chowk', 'Patel Chowk', 'Central Secretariat'], [[1420, 840], [1320, 960], [1320, 1360]]);
+      setPoly(['Central Secretariat', 'Udyog Bhawan', 'Lok Kalyan Marg', 'Jor Bagh', 'Dilli Haat - INA', 'AIIMS', 'Green Park', 'Hauz Khas'], [[1320, 1360], [1320, 1840]]);
+      setPoly(['Hauz Khas', 'Malviya Nagar', 'Saket', 'Qutab Minar', 'Chhatarpur'], [[1320, 1840], [1240, 2140]]);
+      setPoly(['Chhatarpur', 'Sultanpur', 'Ghitorni', 'Arjan Garh', 'Guru Dronacharya', 'Sikanderpur'], [[1240, 2140], [1160, 2260], [1060, 2260]]);
+      setPoly(['Sikanderpur', 'M.G. Road', 'IFFCO Chowk', 'Millennium City Centre Gurugram'], [[1060, 2260], [880, 2260], [880, 2390]]);
+
+      // Rapid Metro (Gurugram) - Official Vertical Spine + Cyber City One-Way Loop
+      setPoly(['Sector 55-56', 'Sector-54 Chowk', 'Sector-53-54', 'Sector-42-43', 'Phase-1', 'Sikanderpur'], [[1060, 2560], [1060, 2260]]);
+      setPoly(['Sikanderpur', 'Phase-2', 'Belvedere Towers', 'Cyber City', 'Moulsari Avenue', 'Phase-3'], [[1060, 2260], [1060, 2200], [870, 2150], [870, 2060], [1060, 2060], [1060, 2140]]);
+
+      // Line 1 - Red Line (East-West Northern Corridor)
+      setPoly(['Rithala', 'Rohini West', 'Rohini East', 'Pitampura', 'Kohat Enclave', 'Netaji Subhash Place'], [[520, 520], [880, 660]]);
+      setPoly(['Netaji Subhash Place', 'Keshav Puram', 'Kanhaiya Nagar', 'Inderlok'], [[880, 660], [980, 840]]);
+      setPoly(['Inderlok', 'Shastri Nagar', 'Pratap Nagar', 'Pulbangash', 'Tis Hazari', 'Kashmere Gate'], [[980, 840], [1420, 840]]);
+      setPoly(['Kashmere Gate', 'Shastri Park', 'Seelampur', 'Welcome'], [[1420, 840], [1800, 800]]);
+      setPoly(['Welcome', 'Shahdara', 'Mansarovar Park', 'Jhilmil', 'Dilshad Garden', 'Shaheed Nagar', 'Raj Bagh', 'Major Mohit Sharma Rajendra Nagar', 'Shyam Park', 'Mohan Nagar', 'Arthala', 'Hindon River', 'Shaheed Sthal (New Bus Adda)'], [[1800, 800], [2480, 800]]);
+
+      // Line 3 & 4 - Blue Line & Vaishali Branch
+      setPoly(['Dwarka Sector-21', 'Dwarka Sector-8', 'Dwarka Sector-9', 'Dwarka Sector-10', 'Dwarka Sector-11', 'Dwarka Sector-12', 'Dwarka Sector-13', 'Dwarka Sector-14', 'Dwarka'], [[360, 1800], [220, 1660], [220, 1500]]);
+      setPoly(['Dwarka', 'Dwarka Mor', 'Nawada', 'Uttam Nagar West', 'Uttam Nagar East', 'Janakpuri West'], [[220, 1500], [440, 1280]]);
+      setPoly(['Janakpuri West', 'Janakpuri East', 'Tilak Nagar', 'Subhash Nagar', 'Tagore Garden', 'Rajouri Garden'], [[440, 1280], [650, 1180]]);
+      setPoly(['Rajouri Garden', 'Ramesh Nagar', 'Moti Nagar', 'Kirti Nagar'], [[650, 1180], [890, 1180]]);
+      setPoly(['Kirti Nagar', 'Shadipur', 'Patel Nagar', 'Rajendra Place', 'Karol Bagh', 'Jhandewalan', 'R.K. Ashram Marg', 'Rajiv Chowk'], [[890, 1180], [1320, 1180]]);
+      setPoly(['Rajiv Chowk', 'Barakhamba Road', 'Mandi House', 'Supreme Court', 'Indraprastha', 'Yamuna Bank'], [[1320, 1180], [1480, 1220], [1780, 1220]]);
+      setPoly(['Yamuna Bank', 'Akshardham', 'Mayur Vihar-I', 'Mayur Vihar Extension', 'New Ashok Nagar'], [[1780, 1220], [1880, 1380], [1995, 1485]]);
+      setPoly(['New Ashok Nagar', 'Noida Sector-15', 'Noida Sector-16', 'Noida Sector-18', 'Botanical Garden'], [[1995, 1485], [2200, 1680]]);
+      setPoly(['Botanical Garden', 'Golf Course', 'Noida City Centre', 'Noida Sector-34', 'Noida Sector-52', 'Noida Sector-61', 'Noida Sector-59', 'Noida Sector-62', 'Noida Electronic City'], [[2200, 1680], [2560, 1520], [2800, 1320]]);
+      setPoly(['Yamuna Bank', 'Laxmi Nagar', 'Nirman Vihar', 'Preet Vihar', 'Karkarduma', 'Anand Vihar ISBT', 'Kaushambi', 'Vaishali'], [[1780, 1220], [1960, 1020], [2240, 1020]]);
+
+      // Line 5 - Green Line + Kirti Nagar Spur
+      setPoly(['Inderlok', 'Ashok Park Main'], [[980, 840], [880, 920]]);
+      setPoly(['Kirti Nagar', 'Satguru Ram Singh Marg', 'Ashok Park Main'], [[890, 1180], [880, 920]]);
+      setPoly(['Ashok Park Main', 'Punjabi Bagh', 'Punjabi Bagh West', 'Shivaji Park', 'Madipur', 'Paschim Vihar East', 'Paschim Vihar West', 'Peeragarhi'], [[880, 920], [600, 980]]);
+      setPoly(['Peeragarhi', 'Udyog Nagar', 'Maharaja Surajmal Stadium', 'Nangloi', 'Nangloi Railway Station', 'Rajdhani Park', 'Mundka', 'Mundka Industrial Area (MIA)', 'Ghevra Metro Station', 'Tikri Kalan', 'Tikri Border', 'Pandit Shree Ram Sharma', 'Bahadurgarh City', 'Brig. Hoshiar Singh'], [[600, 980], [40, 980]]);
+
+      // Line 6 - Violet Line
+      setPoly(['Kashmere Gate', 'Lal Quila', 'Jama Masjid', 'Delhi Gate', 'ITO', 'Mandi House', 'Janpath', 'Central Secretariat'], [[1420, 840], [1520, 1020], [1520, 1120], [1480, 1220], [1320, 1360]]);
+      setPoly(['Central Secretariat', 'Khan Market', 'JLN Stadium', 'Jangpura', 'Lajpat Nagar'], [[1320, 1360], [1580, 1620]]);
+      setPoly(['Lajpat Nagar', 'Moolchand', 'Kailash Colony', 'Nehru Place', 'Kalkaji Mandir'], [[1580, 1620], [1680, 1840]]);
+      setPoly(['Kalkaji Mandir', 'Govind Puri', 'Harkesh Nagar Okhla', 'Jasola Apollo', 'Sarita Vihar', 'Mohan Estate', 'Tughlakabad'], [[1680, 1840], [1880, 2100]]);
+      setPoly(['Tughlakabad', 'Badarpur Border', 'Sarai', 'NHPC Chowk', 'Mewala Maharajpur', 'Sector-28 Faridabad', 'Badkal Mor', 'Old Faridabad', 'Neelam Chowk Ajronda', 'Bata Chowk', 'Escorts Mujesar', 'Sant Surdas (Sihi)', 'Raja Nahar Singh (Ballabhgarh)'], [[1880, 2100], [1880, 2600]]);
+
+      // Line 7 - Pink Line (Complete Official Ring via Maujpur-Babarpur + Shiv Vihar Spur)
+      setPoly(['Majlis Park', 'Azadpur', 'Shalimar Bagh', 'Netaji Subhash Place', 'Shakurpur', 'Punjabi Bagh West'], [[1240, 420], [1160, 520], [880, 660], [800, 1000]]);
+      setPoly(['Punjabi Bagh West', 'ESI-Basaidarapur', 'Rajouri Garden', 'Mayapuri', 'Naraina Vihar', 'Delhi Cantt.', 'Durgabai Deshmukh South Campus', 'Sir M. Vishweshwaraiah Moti Bagh', 'Bhikaji Cama Place', 'Sarojini Nagar', 'Dilli Haat - INA'], [[800, 1000], [650, 1180], [980, 1620], [1320, 1620]]);
+      setPoly(['Dilli Haat - INA', 'South Extension', 'Lajpat Nagar', 'Vinobapuri', 'Ashram', 'Sarai Kale Khan - Nizamuddin', 'Mayur Vihar-I'], [[1320, 1620], [1580, 1620], [1880, 1380]]);
+      setPoly(['Mayur Vihar-I', 'Mayur Vihar Pocket-1', 'Trilokpuri-Sanjay Lake', 'East Vinod Nagar-Mayur Vihar II', 'Mandawali - West Vinod Nagar', 'I.P. Extension', 'Anand Vihar ISBT'], [[1880, 1380], [2060, 1240], [2060, 1100]]);
+      setPoly(['Anand Vihar ISBT', 'Karkarduma', 'Karkarduma Court', 'Krishna Nagar', 'East Azad Nagar', 'Welcome', 'Jafrabad', 'Maujpur-Babarpur'], [[2060, 1100], [1960, 1020], [1800, 800], [1880, 640]]);
+      setPoly(['Maujpur-Babarpur', 'Gokulpuri', 'Johri Enclave', 'Shiv Vihar'], [[1880, 640], [2040, 480]]);
+      setPoly(['Maujpur-Babarpur', 'Yamuna Vihar', 'Bhajanpura', 'Khajuri Khas', 'Nanaksar-Sonia Vihar', 'Soorghat', 'Jagatpur-Wazirabad', 'Jharoda Majra', 'Burari', 'Majlis Park'], [[1880, 640], [1820, 520], [1560, 520], [1380, 460], [1240, 420]]);
+
+      // Line 8 - Magenta Line (Operational Sections)
+      setPoly(['Krishna Park Extn.', 'Janakpuri West'], [[440, 1180], [440, 1280]]);
+      setPoly(['Janakpuri West', 'Dabri Mor - Janakpuri South', 'Dashrathpuri', 'Palam', 'Sadar Bazar Cantonment', 'Terminal 1-IGI Airport', 'Shankar Vihar', 'Vasant Vihar', 'Munirka', 'R.K. Puram', 'IIT', 'Hauz Khas'], [[440, 1280], [720, 1700], [1320, 1840]]);
+      setPoly(['Hauz Khas', 'Panchsheel Park', 'Chirag Delhi', 'Greater Kailash', 'Nehru Enclave', 'Kalkaji Mandir', 'Okhla NSIC', 'Sukhdev Vihar', 'Jamia Millia Islamia', 'Okhla Vihar', 'Jasola Vihar Shaheen Bagh', 'Kalindi Kunj'], [[1320, 1840], [1680, 1840], [1980, 1865], [2140, 1900]]);
+      setPoly(['Kalindi Kunj', 'Okhla Bird Sanctuary', 'Botanical Garden'], [[2140, 1900], [2200, 1790], [2260, 1680]]);
+      setPoly(['Deepali Chowk', 'Madhuban Chowk', 'Prashant Vihar', 'North Pitampura', 'Haiderpur Badli Mor', 'Bhalswa', 'Majlis Park'], [[720, 660], [860, 480], [1020, 380], [1240, 420]]);
+
+      // Line 9 - Grey Line
+      setPoly(['Dwarka', 'Nangli', 'Najafgarh', 'Dhansa Bus Stand'], [[220, 1500], [60, 1500]]);
+
+      // Airport Express (Orange Line)
+      setPoly(['New Delhi', 'Shivaji Stadium', 'Dhaula Kuan', 'Delhi Aerocity', 'Airport (T-3)', 'Dwarka Sector-21', 'Yashobhoomi Dwarka Sec-25'], [[1320, 1060], [1160, 1280], [960, 1540], [780, 1800], [580, 1800], [360, 1800], [360, 1900]]);
+
+      // Aqua Line (NMRC)
+      // NCRTC Namo Bharat RRTS & Meerut Metro (Official Schematic Alignment + Duhai Depot Spur)
+      setPoly([
+        'Sarai Kale Khan - Nizamuddin', 'New Ashok Nagar', 'Anand Vihar ISBT'
+      ], [[1755, 1475], [1995, 1485], [2060, 1100]]);
+      setPoly([
+        'Anand Vihar ISBT', 'Sahibabad', 'Ghaziabad'
+      ], [[2060, 1100], [2280, 950], [2480, 815]]);
+      setPoly([
+        'Ghaziabad', 'Guldhar', 'Duhai', 'Murad Nagar', 'Modinagar South', 'Modinagar North', 'Meerut South'
+      ], [[2480, 815], [2760, 535]]);
+      setPoly(['Duhai', 'Duhai Depot'], [[2573, 722], [2535, 684]]);
+      setPoly(['Meerut South', 'Partapur', 'Rithani', 'Shatabdi Nagar'], [[2760, 535], [2865, 430]]);
+      setPoly(['Shatabdi Nagar', 'Brahmpuri', 'Meerut Central', 'Bhaisali', 'Begumpul'], [[2865, 430], [2990, 305]]);
+      setPoly(['Begumpul', 'MES Colony', 'Daurli', 'Meerut North', 'Modipuram', 'Modipuram Depot'], [[2990, 305], [2990, 35]]);
+
+      // 6 Upcoming Corridors (Solid Functional Lines when selected)
+      setPoly(['Krishna Park Extn.', 'Keshopur', 'Paschim Vihar', 'Peeragarhi', 'Mangolpuri Metro Station', 'West Enclave', 'Pushpanjali', 'Dr. Baba Saheb Ambedkar Hospital', 'Deepali Chowk'], [[440, 1180], [600, 980], [720, 660]]);
+      setPoly(['Majlis Park', 'Azadpur', 'Ashok Vihar', 'Derawal Nagar', 'Ghanta Ghar', 'Pulbangash', 'Sadar Bazar Metro Station', 'Nabi Karim', 'R.K. Ashram Marg', 'Shivaji Stadium'], [[1240, 420], [1160, 520], [1220, 840], [1220, 1060], [1220, 1180], [1160, 1280]]);
+      setPoly(['Shivaji Stadium', 'Yuge Yugeen Bharat', 'Central Secretariat'], [[1160, 1280], [1160, 1360], [1320, 1360]]);
+      setPoly(['Central Secretariat', 'CCS Building', 'India Gate', 'War Memorial-High Court', 'Baroda House', 'Bharat Mandapam', 'Indraprastha'], [[1320, 1360], [1395, 1360], [1470, 1360], [1555, 1360], [1640, 1340], [1640, 1280], [1640, 1220]]);
+      setPoly(['Inderlok', 'Daya Basti'], [[980, 840], [980, 910]]);
+      setPoly(['Daya Basti', 'Sarai Rohilla', 'Ajmal Khan Park'], [[980, 910], [1100, 1060]]);
+      setPoly(['Ajmal Khan Park', 'Jhandewalan Mandir', 'Nabi Karim'], [[1100, 1060], [1220, 1060]]);
+      setPoly(['Nabi Karim', 'New Delhi', 'Delhi Gate'], [[1220, 1060], [1320, 1060], [1520, 1060]]);
+      setPoly(['Delhi Gate', 'Delhi Sachivalaya-IG Stadium', 'Indraprastha'], [[1520, 1060], [1640, 1060], [1640, 1140], [1640, 1220]]);
+      setPoly(['Kalindi Kunj', 'Madanpur Khadar', 'Sarita Vihar Depot', 'Tughlakabad', 'Tughlakabad Railway Colony', 'Anandmayee Marg Jn.', 'Sangam Vihar-Tigri', 'Khanpur', 'Ambedkar Nagar', 'Saket G Block', 'Neb Sarai', 'IGNOU', 'Chhatarpur Mandir', 'Chhatarpur', 'Kishangarh', 'Vasant Kunj', 'Mahipalpur', 'Delhi Aerocity', 'Terminal 1-IGI Airport'], [[2140, 1900], [1880, 2100], [1460, 2080], [1240, 2140], [780, 1800], [720, 1700]]);
+      setPoly(['Lajpat Nagar', 'Andrews Ganj', 'Greater Kailash-1', 'Chirag Delhi', 'Pushpa Bhawan', 'Saket District Centre', 'Pushp Vihar', 'Saket G Block'], [[1580, 1620], [1460, 2080]]);
+      setPoly(['Rithala', 'Rohini Sector-25', 'Rohini Sector-26', 'Rohini Sector-31', 'Rohini Sector-32', 'Rohini Sector-36', 'Barwala', 'Rohini Sector-35', 'Rohini Sector-34', 'Bawana Ind. Area-1 Sector-3, 4', 'Bawana Ind. Area-1 Sector-1, 2', 'Bawana JJ Colony', 'Sanoth', 'New Sanoth', 'Depot Station Narela', 'Bhorgarh Village', 'Anaj Mandi Narela', 'Narela DDA Sports Complex', 'Narela', 'Narela Sector-5', 'Kundli', 'Nathupur'], [[520, 520], [320, 320], [520, 140], [780, 80]]);
+      setPoly(['Botanical Garden', 'Noida Sector-44', 'Noida Office (Sector-96)', 'Noida Sector-97', 'Noida Sector-105', 'Noida Sector-108', 'Noida Sector-93', 'Panchsheel Balak Inter College', 'Noida Sector-142'], [[2260, 1680], [2480, 1940], [2780, 2000]]);
+      setPoly([
+        'Millennium City Centre Gurugram', 'Sector 45', 'Cyber Park',
+        'Dist. Shopping Centre Sector 47', 'Subhash Chowk', 'Sector 48',
+        'Sector 72A', 'Hero Honda Chowk', 'Udyog Vihar Phase-6', 'Sector 10',
+        'Sector 37', 'Basai Village', 'Sector 9', 'Sector 7', 'Sector 4',
+        'Sector 5', 'Ashok Vihar (Gurugram)', 'Sector 3', 'Bajghera Road',
+        'Palam Vihar Extension', 'Palam Vihar', 'Sector 23A', 'Sector 22',
+        'Udyog Vihar Phase-4', 'Udyog Vihar Phase-5', 'Cyber City'
+      ], [
+        [880, 2390], [640, 2580], [420, 2580], [220, 2400], [220, 2240],
+        [360, 2180], [360, 2060], [460, 1970], [660, 1970], [870, 2060]
+      ]);
+      setPoly(['Basai Village', 'Sector 9', 'Sector 101'], [[220, 2340], [220, 2240], [100, 2160]]);
+
+      // Index stations to lines
+      Object.keys(STATION_LINES).forEach(k => delete STATION_LINES[k]);
+      Object.keys(CORRIDOR_STATIONS).forEach(rawLid => {
+        const lid = getCanonicalLineId(rawLid);
+        CORRIDOR_STATIONS[rawLid].forEach(st => {
+          if (!STATION_LINES[st]) STATION_LINES[st] = [];
+          if (!STATION_LINES[st].includes(lid)) STATION_LINES[st].push(lid);
+        });
+      });
+
+      ALL_STATIONS = Object.keys(STATION_LINES).sort();
+      const datalist = document.getElementById('all-stations-datalist');
+      if (datalist) {
+        datalist.innerHTML = ALL_STATIONS.map(s => `<option value="${s.replace(/"/g, '&quot;')}"></option>`).join('');
+      }
+    }
+
+    // =========================================================================
+    // 3. INTERACTIVE MAP STATE, PAN/ZOOM & COLLISION-FREE RENDERING
+    // =========================================================================
+    let networkLayerMode = 'operational'; // Default Operational Map
+    let currentLineFilter = 'all';
+    let showAllLabels = false;
+    let isSidebarHidden = false;
+    let mapTransform = { x: 80, y: 30, scale: 0.38 };
+    let isPanning = false;
+    let panStart = { x: 0, y: 0 };
+
+    function applyMapTransform() {
+      const vp = document.getElementById('map-viewport-group');
+      if (vp) {
+        vp.setAttribute('transform', `translate(${mapTransform.x}, ${mapTransform.y}) scale(${mapTransform.scale})`);
+      }
+    }
+
+    function zoomMap(factor) {
+      const cx = 600, cy = 360;
+      const newScale = Math.min(2.6, Math.max(0.22, mapTransform.scale * factor));
+      const ratio = newScale / mapTransform.scale;
+      mapTransform.x = cx - (cx - mapTransform.x) * ratio;
+      mapTransform.y = cy - (cy - mapTransform.y) * ratio;
+      mapTransform.scale = newScale;
+      applyMapTransform();
+      renderSchematicMap();
+    }
+
+    function resetMapView() {
+      mapTransform = { x: 80, y: 30, scale: 0.38 };
+      applyMapTransform();
+      renderSchematicMap();
+    }
+
+    function toggleMapSidebar() {
+      isSidebarHidden = !isSidebarHidden;
+      const mapCol = document.getElementById('map-canvas-col');
+      const sideCol = document.getElementById('map-sidebar-col');
+      const btnTop = document.getElementById('btn-toggle-sidebar');
+      const btnFloat = document.getElementById('btn-show-sidebar-floating');
+      if (isSidebarHidden) {
+        sideCol.classList.add('hidden');
+        mapCol.classList.remove('lg:col-span-9');
+        mapCol.classList.add('lg:col-span-12');
+        if (btnTop) btnTop.textContent = 'Show Sidebar';
+        if (btnFloat) btnFloat.classList.remove('hidden');
+      } else {
+        sideCol.classList.remove('hidden');
+        mapCol.classList.remove('lg:col-span-12');
+        mapCol.classList.add('lg:col-span-9');
+        if (btnTop) btnTop.textContent = 'Hide Sidebar';
+        if (btnFloat) btnFloat.classList.add('hidden');
+      }
+    }
+
+    function toggleShowAllLabels() {
+      showAllLabels = !showAllLabels;
+      const btn = document.getElementById('btn-toggle-labels');
+      if (btn) {
+        btn.textContent = showAllLabels ? 'Labels: All Visible' : 'Labels: Auto-Smart';
+        btn.classList.toggle('bg-slate-900', showAllLabels);
+        btn.classList.toggle('text-white', showAllLabels);
+      }
+      renderSchematicMap();
+    }
+
+    function setNetworkLayerMode(mode) {
+      networkLayerMode = mode;
+      ['operational', 'all', 'upcoming'].forEach(m => {
+        const b = document.getElementById(`layer-btn-${m}`);
+        if (!b) return;
+        if (m === mode) {
+          b.className = 'px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-900 text-white transition';
+        } else {
+          b.className = 'px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition';
+        }
+      });
+      if (currentLineFilter !== 'all') {
+        const sec = QUICK_SECTION_FILTERS.find(s => s.id === currentLineFilter);
+        if (sec && mode === 'upcoming') {
+          currentLineFilter = 'all';
+        } else if (!sec && LINE_META[currentLineFilter]) {
+          const st = LINE_META[currentLineFilter].status;
+          if ((mode === 'operational' && st !== 'operational') || (mode === 'upcoming' && st !== 'upcoming')) {
+            currentLineFilter = 'all';
+          }
+        }
+      }
+      renderLineFilterPills();
+      renderSchematicMap();
+    }
+
+    function filterMapLine(lineId) {
+      const sectionMeta = QUICK_SECTION_FILTERS.find(s => s.id === lineId);
+      if (sectionMeta) {
+        if (networkLayerMode === 'upcoming') {
+          setNetworkLayerMode('operational');
+        }
+        currentLineFilter = sectionMeta.id;
+        renderLineFilterPills();
+        renderSchematicMap();
+
+        const stList = CORRIDOR_STATIONS[sectionMeta.corridorKey] || [];
+        if (stList.length >= 2) {
+          startTrainSimulation(sectionMeta.parentLineId, stList, sectionMeta.label, sectionMeta.color);
+          const pts = stList.map(s => STATION_COORDS[s]).filter(Boolean);
+          if (pts.length) {
+            const avgX = pts.reduce((a, p) => a + p.x, 0) / pts.length;
+            const avgY = pts.reduce((a, p) => a + p.y, 0) / pts.length;
+            mapTransform.scale = 1.05;
+            mapTransform.x = 600 - avgX * mapTransform.scale;
+            mapTransform.y = 360 - avgY * mapTransform.scale;
+            applyMapTransform();
+            renderSchematicMap();
+          }
+        }
+        return;
+      }
+
+      if (lineId !== 'all' && LINE_META[lineId]) {
+        const targetStatus = LINE_META[lineId].status;
+        if (networkLayerMode === 'operational' && targetStatus === 'upcoming') {
+          setNetworkLayerMode('all');
+        } else if (networkLayerMode === 'upcoming' && targetStatus === 'operational') {
+          setNetworkLayerMode('all');
+        }
+      }
+      currentLineFilter = lineId;
+      renderLineFilterPills();
+      renderSchematicMap();
+      if (lineId !== 'all' && LINE_META[lineId]) {
+        startTrainSimulation(lineId);
+      }
+    }
+
+    function renderLineFilterPills() {
+      const container = document.getElementById('line-filter-pills');
+      if (!container) return;
+
+      const visibleKeys = Object.keys(LINE_META).filter(lid => {
+        if (networkLayerMode === 'operational') return LINE_META[lid].status === 'operational';
+        if (networkLayerMode === 'upcoming') return LINE_META[lid].status === 'upcoming';
+        return true;
+      });
+
+      let html = `
+        <button onclick="filterMapLine('all')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition ${currentLineFilter === 'all' ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'}">
+          All Lines
+        </button>
+      `;
+
+      visibleKeys.forEach(lid => {
+        const m = LINE_META[lid];
+        const active = currentLineFilter === lid;
+        html += `
+          <button onclick="filterMapLine('${lid}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition flex items-center gap-1.5 ${active ? 'ring-2 ring-offset-1 ring-slate-900' : 'opacity-90 hover:opacity-100'}" style="background:${active ? m.color : '#ffffff'};color:${active ? m.textColor : '#1e293b'};border-color:${m.color}">
+            <span class="w-2 h-2 rounded-full shrink-0" style="background:${active ? m.textColor : m.color}"></span>
+            <span>${m.shortName}</span>
+          </button>
+        `;
+      });
+
+      if (networkLayerMode !== 'upcoming') {
+        QUICK_SECTION_FILTERS.forEach(sec => {
+          const active = currentLineFilter === sec.id;
+          html += `
+            <button onclick="filterMapLine('${sec.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition flex items-center gap-1.5 ${active ? 'ring-2 ring-offset-1 ring-slate-900' : 'opacity-95 hover:opacity-100'}" style="background:${active ? sec.color : '#ffffff'};color:${active ? sec.textColor : '#1e293b'};border-color:${sec.color}">
+              <span class="w-2 h-2 rounded-full shrink-0" style="background:${active ? sec.textColor : sec.color}"></span>
+              <span>${sec.label}</span>
+            </button>
+          `;
+        });
+      }
+
+      container.innerHTML = html;
+    }
+
+    // Builds an SVG path where corner turns are rounded smoothly on one side
+    // instead of forming sharp angular kinks, while keeping straight runs crisp.
+    function buildSmoothCornerPath(pts, cornerRadius = 24) {
+      if (!pts || pts.length === 0) return '';
+      if (pts.length === 1) return `M ${pts[0].x} ${pts[0].y}`;
+      if (pts.length === 2) return `M ${pts[0].x} ${pts[0].y} L ${pts[1].x} ${pts[1].y}`;
+
+      let d = `M ${pts[0].x} ${pts[0].y}`;
+      for (let i = 1; i < pts.length - 1; i++) {
+        const pPrev = pts[i - 1];
+        const pCurr = pts[i];
+        const pNext = pts[i + 1];
+
+        const v1x = pPrev.x - pCurr.x;
+        const v1y = pPrev.y - pCurr.y;
+        const len1 = Math.hypot(v1x, v1y);
+
+        const v2x = pNext.x - pCurr.x;
+        const v2y = pNext.y - pCurr.y;
+        const len2 = Math.hypot(v2x, v2y);
+
+        if (len1 < 1 || len2 < 1) {
+          d += ` L ${pCurr.x} ${pCurr.y}`;
+          continue;
+        }
+
+        // Cross product determines which side of the turn is the inner/outer bend
+        const cross = (pCurr.x - pPrev.x) * (pNext.y - pCurr.y) - (pCurr.y - pPrev.y) * (pNext.x - pCurr.x);
+        const dot = (v1x * v2x + v1y * v2y) / (len1 * len2);
+
+        // Skip rounding on nearly collinear segments or acute reversals
+        if (Math.abs(cross) < 4 || dot > 0.75) {
+          d += ` L ${pCurr.x} ${pCurr.y}`;
+          continue;
+        }
+
+        const r = Math.min(cornerRadius, len1 * 0.38, len2 * 0.38);
+        const startX = pCurr.x + (v1x / len1) * r;
+        const startY = pCurr.y + (v1y / len1) * r;
+        const endX = pCurr.x + (v2x / len2) * r;
+        const endY = pCurr.y + (v2y / len2) * r;
+
+        d += ` L ${startX.toFixed(1)} ${startY.toFixed(1)} Q ${pCurr.x} ${pCurr.y} ${endX.toFixed(1)} ${endY.toFixed(1)}`;
+      }
+
+      const last = pts[pts.length - 1];
+      d += ` L ${last.x} ${last.y}`;
+      return d;
+    }
+
+    // Samples points along the rounded corner polyline so the train follows the curved bend
+    function sampleSmoothPolyline(pts, progress, cornerRadius = 24) {
+      const sampled = [];
+      if (!pts || pts.length === 0) return { x: 0, y: 0, angleDeg: 0 };
+      if (pts.length === 1) return { x: pts[0].x, y: pts[0].y, angleDeg: 0 };
+
+      sampled.push({ x: pts[0].x, y: pts[0].y });
+      for (let i = 1; i < pts.length - 1; i++) {
+        const pPrev = pts[i - 1];
+        const pCurr = pts[i];
+        const pNext = pts[i + 1];
+
+        const v1x = pPrev.x - pCurr.x;
+        const v1y = pPrev.y - pCurr.y;
+        const len1 = Math.hypot(v1x, v1y);
+
+        const v2x = pNext.x - pCurr.x;
+        const v2y = pNext.y - pCurr.y;
+        const len2 = Math.hypot(v2x, v2y);
+
+        const cross = (pCurr.x - pPrev.x) * (pNext.y - pCurr.y) - (pCurr.y - pPrev.y) * (pNext.x - pCurr.x);
+        const dot = len1 > 0 && len2 > 0 ? (v1x * v2x + v1y * v2y) / (len1 * len2) : 1;
+
+        if (len1 < 1 || len2 < 1 || Math.abs(cross) < 4 || dot > 0.75) {
+          sampled.push({ x: pCurr.x, y: pCurr.y });
+          continue;
+        }
+
+        const r = Math.min(cornerRadius, len1 * 0.38, len2 * 0.38);
+        const sx = pCurr.x + (v1x / len1) * r;
+        const sy = pCurr.y + (v1y / len1) * r;
+        const ex = pCurr.x + (v2x / len2) * r;
+        const ey = pCurr.y + (v2y / len2) * r;
+
+        sampled.push({ x: sx, y: sy });
+        const steps = 8;
+        for (let s = 1; s < steps; s++) {
+          const t = s / steps;
+          const inv = 1 - t;
+          sampled.push({
+            x: inv * inv * sx + 2 * inv * t * pCurr.x + t * t * ex,
+            y: inv * inv * sy + 2 * inv * t * pCurr.y + t * t * ey
+          });
+        }
+        sampled.push({ x: ex, y: ey });
+      }
+      sampled.push({ x: pts[pts.length - 1].x, y: pts[pts.length - 1].y });
+
+      let totalDist = 0;
+      const segDists = [];
+      for (let i = 0; i < sampled.length - 1; i++) {
+        const d = Math.hypot(sampled[i + 1].x - sampled[i].x, sampled[i + 1].y - sampled[i].y);
+        segDists.push(d);
+        totalDist += d;
+      }
+
+      const clamped = Math.min(1, Math.max(0, progress));
+      const target = clamped * totalDist;
+      let acc = 0;
+      for (let i = 0; i < segDists.length; i++) {
+        if (acc + segDists[i] >= target || i === segDists.length - 1) {
+          const t = segDists[i] === 0 ? 0 : (target - acc) / segDists[i];
+          const x = sampled[i].x + (sampled[i + 1].x - sampled[i].x) * t;
+          const y = sampled[i].y + (sampled[i + 1].y - sampled[i].y) * t;
+          const angleDeg = (Math.atan2(sampled[i + 1].y - sampled[i].y, sampled[i + 1].x - sampled[i].x) * 180) / Math.PI;
+          return { x, y, angleDeg };
+        }
+        acc += segDists[i];
+      }
+      return { x: sampled[0].x, y: sampled[0].y, angleDeg: 0 };
+    }
+
+    function renderSchematicMap() {
+      const linesLayer = document.getElementById('map-lines-layer');
+      const stationsLayer = document.getElementById('map-stations-layer');
+      const labelsLayer = document.getElementById('map-labels-layer');
+      if (!linesLayer || !stationsLayer || !labelsLayer) return;
+
+      linesLayer.innerHTML = '';
+      stationsLayer.innerHTML = '';
+      labelsLayer.innerHTML = '';
+
+      const activeSection = QUICK_SECTION_FILTERS.find(s => s.id === currentLineFilter);
+
+      // 1. Render Corridors (Solid continuous lines without dots/dashes)
+      Object.keys(CORRIDOR_STATIONS).forEach(rawLid => {
+        if (rawLid === 'rrts') return; // Drawn via rrts_main_line + rrts_duhai_spur so Duhai Depot branches cleanly
+        const lid = getCanonicalLineId(rawLid);
+        const meta = LINE_META[lid];
+        if (!meta) return;
+        if (networkLayerMode === 'operational' && meta.status !== 'operational') return;
+        if (networkLayerMode === 'upcoming' && meta.status !== 'upcoming') return;
+
+        const stations = CORRIDOR_STATIONS[rawLid];
+        const pts = stations.map(st => STATION_COORDS[st]).filter(Boolean);
+        if (pts.length < 2) return;
+
+        // Parallel track offset for Meerut Metro alongside Namo Bharat RRTS (as on official NCRTC schematic)
+        const renderPts = rawLid === 'meerut'
+          ? pts.map((p, idx) => (idx <= 7 ? { x: p.x + 9, y: p.y + 9 } : { x: p.x + 12, y: p.y }))
+          : pts;
+
+        const d = buildSmoothCornerPath(renderPts, rawLid === 'meerut' ? 28 : 22);
+        const isFocused = activeSection
+          ? rawLid === activeSection.corridorKey
+          : (currentLineFilter === 'all' || currentLineFilter === lid);
+        const opacity = isFocused ? '0.95' : '0.15';
+
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', d);
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke', meta.color);
+        path.setAttribute('stroke-width', (currentLineFilter === lid || (activeSection && rawLid === activeSection.corridorKey)) ? '9.5' : '6.5');
+        path.setAttribute('stroke-linecap', 'round');
+        path.setAttribute('stroke-linejoin', 'round');
+        path.setAttribute('opacity', opacity);
+        linesLayer.appendChild(path);
+      });
+
+      // 1B. Render Skywalk Interchange Connectors (Noida Sec 51 <-> Sec 52)
+      SKYWALK_LINKS.forEach(sw => {
+        const p1 = STATION_COORDS[sw.from];
+        const p2 = STATION_COORDS[sw.to];
+        if (!p1 || !p2) return;
+
+        const swLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        swLine.setAttribute('x1', p1.x);
+        swLine.setAttribute('y1', p1.y);
+        swLine.setAttribute('x2', p2.x);
+        swLine.setAttribute('y2', p2.y);
+        swLine.setAttribute('stroke', '#0284c7');
+        swLine.setAttribute('stroke-width', '4.5');
+        swLine.setAttribute('stroke-dasharray', '6 4');
+        linesLayer.appendChild(swLine);
+
+        if (mapTransform.scale >= 0.45 || showAllLabels) {
+          const swLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          swLabel.setAttribute('x', (p1.x + p2.x) / 2 + 12);
+          swLabel.setAttribute('y', (p1.y + p2.y) / 2 - 8);
+          swLabel.setAttribute('font-size', '10');
+          swLabel.setAttribute('fill', '#0369a1');
+          swLabel.setAttribute('class', 'station-label');
+          swLabel.textContent = sw.label;
+          labelsLayer.appendChild(swLabel);
+        }
+      });
+
+      // 2. Render Station Nodes & Strictly Non-Overlapping Labels (Zero Duplicate Interchange Names)
+      const drawnStations = new Set();
+      const labeledStations = new Set();
+      const placedBoxes = [];
+
+      // First pass: render station circles & reserve dot bounding boxes
+      Object.keys(CORRIDOR_STATIONS).forEach(rawLid => {
+        if (rawLid === 'rrts') return;
+        const lid = getCanonicalLineId(rawLid);
+        const meta = LINE_META[lid];
+        if (!meta) return;
+        if (networkLayerMode === 'operational' && meta.status !== 'operational') return;
+        if (networkLayerMode === 'upcoming' && meta.status !== 'upcoming') return;
+
+        const stations = CORRIDOR_STATIONS[rawLid];
+        stations.forEach((stName, idx) => {
+          const baseCoord = STATION_COORDS[stName];
+          if (!baseCoord) return;
+
+          // Place Meerut Metro station dots directly on the parallel sky-blue Meerut Metro track
+          const isMeerutOnly = rawLid === 'meerut' && !(STATION_LINES[stName] || []).includes('rrts');
+          const coord = isMeerutOnly
+            ? (idx <= 7 ? { x: baseCoord.x + 9, y: baseCoord.y + 9 } : { x: baseCoord.x + 12, y: baseCoord.y })
+            : baseCoord;
+
+          if (drawnStations.has(stName)) return;
+          drawnStations.add(stName);
+
+          const linesForStation = STATION_LINES[stName] || [lid];
+          const hasSkywalk = SKYWALK_LINKS.some(sw => sw.from === stName || sw.to === stName);
+          const isInterchange = linesForStation.length > 1 || hasSkywalk || stName === 'Maujpur-Babarpur' || stName === 'Ashok Park Main' || stName === 'Jasola Vihar Shaheen Bagh';
+          const isTerminal = idx === 0 || idx === stations.length - 1;
+          const isStationActiveInFilter = activeSection
+            ? (CORRIDOR_STATIONS[activeSection.corridorKey] || []).includes(stName)
+            : (currentLineFilter === 'all' || linesForStation.includes(currentLineFilter));
+          const radius = isInterchange ? 8.5 : (isTerminal ? 7 : 5);
+
+          placedBoxes.push({
+            x1: coord.x - radius - 4,
+            y1: coord.y - radius - 4,
+            x2: coord.x + radius + 4,
+            y2: coord.y + radius + 4
+          });
+
+          const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          circle.setAttribute('cx', coord.x);
+          circle.setAttribute('cy', coord.y);
+          circle.setAttribute('r', radius);
+          circle.setAttribute('fill', isInterchange ? '#ffffff' : meta.color);
+          circle.setAttribute('stroke', isInterchange ? '#0f172a' : '#ffffff');
+          circle.setAttribute('stroke-width', isInterchange ? '3' : '2');
+          circle.setAttribute('opacity', isStationActiveInFilter ? '1' : '0.22');
+          circle.setAttribute('class', 'station-node');
+          circle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            inspectStation(stName);
+          });
+          stationsLayer.appendChild(circle);
+
+          // Draw paired sky-blue interchange dot on Meerut Metro track for shared RRTS+Meerut stations
+          if (rawLid === 'rrts_main_line' && linesForStation.includes('meerut')) {
+            const mIdx = CORRIDOR_STATIONS.meerut.indexOf(stName);
+            const mx = mIdx <= 7 ? baseCoord.x + 9 : baseCoord.x + 12;
+            const my = mIdx <= 7 ? baseCoord.y + 9 : baseCoord.y;
+            const mDot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            mDot.setAttribute('cx', mx);
+            mDot.setAttribute('cy', my);
+            mDot.setAttribute('r', '4.2');
+            mDot.setAttribute('fill', LINE_META.meerut.color);
+            mDot.setAttribute('stroke', '#0f172a');
+            mDot.setAttribute('stroke-width', '1.8');
+            mDot.setAttribute('opacity', isStationActiveInFilter ? '1' : '0.22');
+            mDot.setAttribute('class', 'station-node');
+            mDot.addEventListener('click', (e) => {
+              e.stopPropagation();
+              inspectStation(stName);
+            });
+            stationsLayer.appendChild(mDot);
+          }
+        });
+      });
+
+      // Second pass: place crisp, staggered, collision-free labels
+      Object.keys(CORRIDOR_STATIONS).forEach(rawLid => {
+        if (rawLid === 'rrts') return;
+        const lid = getCanonicalLineId(rawLid);
+        const meta = LINE_META[lid];
+        if (!meta) return;
+        if (networkLayerMode === 'operational' && meta.status !== 'operational') return;
+        if (networkLayerMode === 'upcoming' && meta.status !== 'upcoming') return;
+
+        const stations = CORRIDOR_STATIONS[rawLid];
+        const isLineFocused = activeSection
+          ? rawLid === activeSection.corridorKey
+          : currentLineFilter === lid;
+
+        stations.forEach((stName, idx) => {
+          const baseCoord = STATION_COORDS[stName];
+          if (!baseCoord || labeledStations.has(stName)) return;
+
+          const isMeerutOnly = rawLid === 'meerut' && !(STATION_LINES[stName] || []).includes('rrts');
+          const coord = isMeerutOnly
+            ? (idx <= 7 ? { x: baseCoord.x + 9, y: baseCoord.y + 9 } : { x: baseCoord.x + 12, y: baseCoord.y })
+            : baseCoord;
+
+          const linesForStation = STATION_LINES[stName] || [lid];
+          const hasSkywalk = SKYWALK_LINKS.some(sw => sw.from === stName || sw.to === stName);
+          const isInterchange = linesForStation.length > 1 || hasSkywalk || stName === 'Maujpur-Babarpur' || stName === 'Ashok Park Main' || stName === 'Jasola Vihar Shaheen Bagh';
+          const isTerminal = idx === 0 || idx === stations.length - 1;
+          const isStationActiveInFilter = activeSection
+            ? (CORRIDOR_STATIONS[activeSection.corridorKey] || []).includes(stName)
+            : (currentLineFilter === 'all' || linesForStation.includes(currentLineFilter));
+
+          if (!isStationActiveInFilter) return;
+
+          // Wrap long station names (>16 chars) into two balanced lines to prevent horizontal collisions
+          const wrapStationName = (name) => {
+            if (name.length <= 16 || !name.includes(' ')) return [name];
+            const words = name.split(' ');
+            if (words.length === 2) return words;
+            const mid = Math.ceil(name.length / 2);
+            let bestIdx = 1;
+            let bestDiff = Infinity;
+            let acc = 0;
+            for (let w = 0; w < words.length - 1; w++) {
+              acc += words[w].length + (w > 0 ? 1 : 0);
+              const diff = Math.abs(acc - mid);
+              if (diff < bestDiff) {
+                bestDiff = diff;
+                bestIdx = w + 1;
+              }
+            }
+            return [words.slice(0, bestIdx).join(' '), words.slice(bestIdx).join(' ')];
+          };
+
+          const linesArr = wrapStationName(stName);
+          const fontSize = isInterchange ? 11.5 : (isTerminal ? 10.5 : 9.8);
+          const lineHeight = fontSize + 2.5;
+          const maxLineLen = Math.max(...linesArr.map(l => l.length));
+          const estW = maxLineLen * (fontSize * 0.64) + 14;
+          const estH = linesArr.length * lineHeight + 8;
+          const flipDir = idx % 2 === 0 ? -1 : 1;
+
+          // Position RRTS labels to the upper-left and Meerut Metro labels to the lower-right, matching the NCRTC map
+          const isRrtsStop = linesForStation.includes('rrts');
+          const candidates = stName === 'Kalkaji Mandir'
+            ? [
+                { dx: -16, dy: 24, anchor: 'end', tier: 2 },
+                { dx: -16, dy: 36, anchor: 'end', tier: 2 }
+              ]
+            : stName === 'Nehru Enclave'
+            ? [
+                { dx: 0, dy: -20, anchor: 'middle', tier: 1 },
+                { dx: -8, dy: -26, anchor: 'end', tier: 2 }
+              ]
+            : stName === 'Okhla NSIC'
+            ? [
+                { dx: 4, dy: -24, anchor: 'start', tier: 2 },
+                { dx: 0, dy: -32, anchor: 'middle', tier: 2 }
+              ]
+            : stName === 'Sukhdev Vihar'
+            ? [
+                { dx: 0, dy: -22, anchor: 'middle', tier: 1 },
+                { dx: 4, dy: 24, anchor: 'start', tier: 1 }
+              ]
+            : stName === 'Govind Puri'
+            ? [
+                { dx: 14, dy: 5, anchor: 'start', tier: 1 },
+                { dx: -14, dy: 5, anchor: 'end', tier: 1 }
+              ]
+            : stName === 'Jasola Vihar Shaheen Bagh'
+            ? [
+                { dx: 0, dy: 34, anchor: 'middle', tier: 2 },
+                { dx: 12, dy: 38, anchor: 'start', tier: 2 }
+              ]
+            : stName === 'Jamia Millia Islamia'
+            ? [
+                { dx: 0, dy: -20, anchor: 'middle', tier: 1 },
+                { dx: -10, dy: -26, anchor: 'end', tier: 2 }
+              ]
+            : stName === 'New Ashok Nagar'
+            ? [
+                { dx: 18, dy: 4, anchor: 'start', tier: 1 },
+                { dx: 16, dy: 22, anchor: 'start', tier: 2 }
+              ]
+            : stName === 'Mayur Vihar Extension'
+            ? [
+                { dx: -14, dy: 6, anchor: 'end', tier: 1 },
+                { dx: 14, dy: -12, anchor: 'start', tier: 2 }
+              ]
+            : isRrtsStop
+            ? [
+                { dx: -16, dy: -6, anchor: 'end', tier: 1 },
+                { dx: -22, dy: -18, anchor: 'end', tier: 2 },
+                { dx: -16, dy: 16, anchor: 'end', tier: 1 }
+              ]
+            : rawLid === 'meerut'
+            ? [
+                { dx: 16, dy: 8, anchor: 'start', tier: 1 },
+                { dx: 22, dy: 18, anchor: 'start', tier: 2 },
+                { dx: 16, dy: -10, anchor: 'start', tier: 1 }
+              ]
+            : [
+                { dx: 0, dy: flipDir * 20, anchor: 'middle', tier: 1 },
+                { dx: 0, dy: -flipDir * 20, anchor: 'middle', tier: 1 },
+                { dx: 15, dy: 4, anchor: 'start', tier: 1 },
+                { dx: -15, dy: 4, anchor: 'end', tier: 1 },
+                { dx: 0, dy: flipDir * 38, anchor: 'middle', tier: 2 },
+                { dx: 0, dy: -flipDir * 38, anchor: 'middle', tier: 2 },
+                { dx: 18, dy: flipDir * 24, anchor: 'start', tier: 2 },
+                { dx: -18, dy: flipDir * 24, anchor: 'end', tier: 2 },
+                { dx: 0, dy: flipDir * 56, anchor: 'middle', tier: 2 },
+                { dx: 0, dy: -flipDir * 56, anchor: 'middle', tier: 2 },
+                { dx: 26, dy: flipDir * 42, anchor: 'start', tier: 2 },
+                { dx: -26, dy: flipDir * 42, anchor: 'end', tier: 2 },
+                { dx: 0, dy: flipDir * 74, anchor: 'middle', tier: 2 },
+                { dx: 0, dy: -flipDir * 74, anchor: 'middle', tier: 2 }
+              ];
+
+          const computeBox = (lx, ly, anchor) => {
+            let bx1 = lx - estW / 2;
+            let bx2 = lx + estW / 2;
+            if (anchor === 'start') {
+              bx1 = lx - 4;
+              bx2 = lx + estW;
+            } else if (anchor === 'end') {
+              bx1 = lx - estW;
+              bx2 = lx + 4;
+            }
+            // Account for upward expansion when multi-line text sits above the line
+            const topY = ly < coord.y
+              ? ly - (linesArr.length - 1) * lineHeight - fontSize
+              : ly - fontSize;
+            const botY = ly < coord.y
+              ? ly + 5
+              : ly + (linesArr.length - 1) * lineHeight + 5;
+            return { x1: bx1, y1: topY, x2: bx2, y2: botY };
+          };
+
+          let chosen = null;
+          for (const cand of candidates) {
+            const lx = coord.x + cand.dx;
+            const ly = coord.y + cand.dy;
+            const box = computeBox(lx, ly, cand.anchor);
+
+            const overlaps = placedBoxes.some(
+              b => !(box.x2 < b.x1 || box.x1 > b.x2 || box.y2 < b.y1 || box.y1 > b.y2)
+            );
+            if (!overlaps) {
+              chosen = { lx, ly, anchor: cand.anchor, tier: cand.tier, box };
+              break;
+            }
+          }
+
+          if (!chosen) {
+            const fallbackDy = stName === 'Jasola Vihar Shaheen Bagh' ? 36 : (isInterchange ? -28 : flipDir * 48);
+            const lx = coord.x;
+            const ly = coord.y + fallbackDy;
+            chosen = {
+              lx,
+              ly,
+              anchor: 'middle',
+              tier: 2,
+              box: computeBox(lx, ly, 'middle')
+            };
+          }
+
+          labeledStations.add(stName);
+          placedBoxes.push(chosen.box);
+
+          // Target the nearest vertical edge of the text block for the dashed leader line
+          const targetTextY = chosen.ly < coord.y ? chosen.ly + 2 : chosen.ly - fontSize + 2;
+          const dxLine = chosen.lx - coord.x;
+          const dyLine = targetTextY - coord.y;
+          const distLine = Math.hypot(dxLine, dyLine);
+          if (distLine > 6) {
+            const dotR = isInterchange ? 8.5 : (isTerminal ? 7 : 5);
+            const ux = dxLine / distLine;
+            const uy = dyLine / distLine;
+            const xStart = coord.x + ux * (dotR + 1.5);
+            const yStart = coord.y + uy * (dotR + 1.5);
+            const xEnd = chosen.lx - ux * 3;
+            const yEnd = targetTextY - uy * 3;
+
+            const leader = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            leader.setAttribute('x1', xStart.toFixed(1));
+            leader.setAttribute('y1', yStart.toFixed(1));
+            leader.setAttribute('x2', xEnd.toFixed(1));
+            leader.setAttribute('y2', yEnd.toFixed(1));
+            leader.setAttribute('stroke', isInterchange ? '#475569' : meta.color);
+            leader.setAttribute('stroke-width', isInterchange ? '1.8' : '1.5');
+            leader.setAttribute('stroke-dasharray', '3.5 2.5');
+            leader.setAttribute('opacity', '0.85');
+            labelsLayer.appendChild(leader);
+
+            const tipDot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            tipDot.setAttribute('cx', xEnd.toFixed(1));
+            tipDot.setAttribute('cy', yEnd.toFixed(1));
+            tipDot.setAttribute('r', '2');
+            tipDot.setAttribute('fill', isInterchange ? '#0f172a' : meta.color);
+            labelsLayer.appendChild(tipDot);
+          }
+
+          const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          text.setAttribute('x', chosen.lx);
+          text.setAttribute('y', chosen.ly);
+          text.setAttribute('text-anchor', chosen.anchor);
+          text.setAttribute('font-size', fontSize);
+          text.setAttribute('fill', isInterchange ? '#0f172a' : '#1e293b');
+          text.setAttribute('class', 'station-label');
+
+          if (linesArr.length === 1) {
+            text.textContent = linesArr[0];
+          } else {
+            // If label is placed above the dot, shift first tspan up so the second line rests cleanly above the leader
+            const firstDy = chosen.ly < coord.y ? -(linesArr.length - 1) * lineHeight : 0;
+            linesArr.forEach((lineStr, lIdx) => {
+              const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+              tspan.setAttribute('x', chosen.lx);
+              tspan.setAttribute('dy', lIdx === 0 ? firstDy : lineHeight);
+              tspan.textContent = lineStr;
+              text.appendChild(tspan);
+            });
+          }
+          labelsLayer.appendChild(text);
+        });
+      });
+    }
+
+    function setupMapPanZoom() {
+      const svg = document.getElementById('dmrc-svg');
+      if (!svg) return;
+
+      svg.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const factor = e.deltaY < 0 ? 1.15 : 0.87;
+        const rect = svg.getBoundingClientRect();
+        const mx = ((e.clientX - rect.left) / rect.width) * 1200;
+        const my = ((e.clientY - rect.top) / rect.height) * 720;
+        const newScale = Math.min(2.6, Math.max(0.22, mapTransform.scale * factor));
+        const ratio = newScale / mapTransform.scale;
+        mapTransform.x = mx - (mx - mapTransform.x) * ratio;
+        mapTransform.y = my - (my - mapTransform.y) * ratio;
+        mapTransform.scale = newScale;
+        applyMapTransform();
+        renderSchematicMap();
+      }, { passive: false });
+
+      svg.addEventListener('mousedown', (e) => {
+        if (e.target.classList && e.target.classList.contains('station-node')) return;
+        isPanning = true;
+        panStart = { x: e.clientX, y: e.clientY };
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (!isPanning) return;
+        const rect = svg.getBoundingClientRect();
+        const dx = ((e.clientX - panStart.x) / rect.width) * 1200;
+        const dy = ((e.clientY - panStart.y) / rect.height) * 720;
+        panStart = { x: e.clientX, y: e.clientY };
+        mapTransform.x += dx;
+        mapTransform.y += dy;
+        applyMapTransform();
+      });
+
+      window.addEventListener('mouseup', () => {
+        isPanning = false;
+      });
+    }
+
+    function jumpToStationFromSearch(val) {
+      const clean = (val || '').trim();
+      const match = ALL_STATIONS.find(s => s.toLowerCase() === clean.toLowerCase());
+      if (!match) return;
+      const lines = STATION_LINES[match] || [];
+      if (lines.some(l => LINE_META[l]?.status === 'upcoming') && networkLayerMode === 'operational') {
+        setNetworkLayerMode('all');
+      }
+      const coord = STATION_COORDS[match];
+      if (coord) {
+        mapTransform.scale = 1.3;
+        mapTransform.x = 600 - coord.x * mapTransform.scale;
+        mapTransform.y = 360 - coord.y * mapTransform.scale;
+        applyMapTransform();
+        renderSchematicMap();
+      }
+      inspectStation(match);
+    }
+
+    function inspectStation(stName) {
+      const body = document.getElementById('station-inspector-body');
+      if (!body) return;
+      const lines = STATION_LINES[stName] || [];
+      const skywalks = SKYWALK_LINKS.filter(sw => sw.from === stName || sw.to === stName);
+      const isInterchange = lines.length > 1 || skywalks.length > 0;
+
+      const badges = lines.map(lid => {
+        const m = LINE_META[lid];
+        return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold" style="background:${m.color};color:${m.textColor}">${m.shortName}</span>`;
+      }).join(' ');
+
+      const skywalkHtml = skywalks.map(sw => {
+        const partner = sw.from === stName ? sw.to : sw.from;
+        return `<div class="p-2 rounded-lg bg-sky-50 border border-sky-200 text-[11px] text-sky-900 font-semibold">⇄ Foot Overbridge Skywalk to <strong>${partner}</strong> (~${sw.distanceMeters}m / ${sw.walkMins} min)</div>`;
+      }).join('');
+
+      body.innerHTML = `
+        <div>
+          <div class="flex items-center justify-between gap-2">
+            <h3 class="text-sm font-extrabold text-slate-900">${stName}</h3>
+            ${isInterchange ? '<span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">INTERCHANGE</span>' : ''}
+          </div>
+          <div class="flex flex-wrap gap-1 mt-1.5">${badges}</div>
+        </div>
+        ${skywalkHtml}
+        <div class="grid grid-cols-2 gap-1.5 pt-1">
+          <button onclick="setStationAsPlannerEndpoint('${stName.replace(/'/g, "\\'")}', 'origin')" class="py-1.5 px-2 rounded-lg bg-slate-900 text-white text-[11px] font-bold hover:bg-slate-800">Set Origin</button>
+          <button onclick="setStationAsPlannerEndpoint('${stName.replace(/'/g, "\\'")}', 'dest')" class="py-1.5 px-2 rounded-lg bg-red-600 text-white text-[11px] font-bold hover:bg-red-700">Set Destination</button>
+        </div>
+      `;
+    }
+
+    function setStationAsPlannerEndpoint(stName, role) {
+      const inp = document.getElementById(role === 'origin' ? 'route-origin' : 'route-dest');
+      if (inp) inp.value = stName;
+      const lines = STATION_LINES[stName] || [];
+      if (lines.some(l => LINE_META[l]?.status === 'upcoming')) {
+        const chk = document.getElementById('route-include-upcoming');
+        if (chk) chk.checked = true;
+      }
+      switchTab('planner');
+      calculateRoute();
+    }
+
+    // =========================================================================
+    // 4. LIVE ARTICULATED TRAIN SIMULATION ENGINE (0.5x SPEED & AUTO-REVERSE)
+    // =========================================================================
+    let simState = {
+      active: false,
+      playing: true,
+      lineId: null,
+      title: '',
+      color: '#ef4444',
+      stations: [],
+      direction: 1, // 1 = forward, -1 = reverse
+      autoReverse: true,
+      followTrain: false,
+      speedMultiplier: 1,
+      progress: 0, // 0 to 1
+      dwellTimer: 0,
+      lastStationIdx: -1,
+      rafId: null,
+      lastFrameTime: 0
+    };
+
+    function startTrainSimulation(lineId, customStations = null, customTitle = null, customColor = null) {
+      const meta = LINE_META[lineId];
+      if (!meta && !customStations) return;
+
+      let stList = customStations || (lineId === 'rrts' ? CORRIDOR_STATIONS.rrts_main_line : CORRIDOR_STATIONS[lineId]) || [];
+      if (lineId === 'magenta' && !customStations) {
+        stList = CORRIDOR_STATIONS.magenta;
+      }
+      if (stList.length < 2) return;
+
+      simState.active = true;
+      simState.playing = true;
+      simState.lineId = lineId;
+      simState.title = customTitle || meta.name;
+      simState.color = customColor || meta.color;
+      simState.stations = stList;
+      simState.direction = 1;
+      simState.progress = 0;
+      simState.dwellTimer = 1.0;
+      simState.lastStationIdx = 0;
+      simState.lastFrameTime = performance.now();
+
+      const hud = document.getElementById('train-sim-hud');
+      const marker = document.getElementById('live-train-marker');
+      const dot = document.getElementById('sim-line-dot');
+      const titleEl = document.getElementById('sim-line-title');
+      const playBtn = document.getElementById('sim-play-btn');
+
+      if (hud) hud.classList.remove('hidden');
+      if (marker) marker.classList.remove('hidden');
+      if (dot) dot.style.backgroundColor = simState.color;
+      if (titleEl) titleEl.textContent = simState.title;
+      if (playBtn) playBtn.textContent = 'Pause';
+
+      document.querySelectorAll('.metro-livery-stripe').forEach(el => {
+        el.setAttribute('fill', simState.color);
+      });
+      const halo = document.getElementById('train-halo-circle');
+      if (halo) halo.setAttribute('fill', simState.color);
+
+      if (simState.rafId) cancelAnimationFrame(simState.rafId);
+      simState.rafId = requestAnimationFrame(updateTrainSimulationFrame);
+    }
+
+    function stopTrainSimulation() {
+      simState.active = false;
+      if (simState.rafId) cancelAnimationFrame(simState.rafId);
+      const hud = document.getElementById('train-sim-hud');
+      const marker = document.getElementById('live-train-marker');
+      if (hud) hud.classList.add('hidden');
+      if (marker) marker.classList.add('hidden');
+    }
+
+    function toggleTrainPlay() {
+      simState.playing = !simState.playing;
+      const btn = document.getElementById('sim-play-btn');
+      if (btn) btn.textContent = simState.playing ? 'Pause' : 'Resume';
+      if (simState.playing) {
+        simState.lastFrameTime = performance.now();
+        simState.rafId = requestAnimationFrame(updateTrainSimulationFrame);
+      }
+    }
+
+    function reverseTrainDirection() {
+      simState.direction *= -1;
+      simState.dwellTimer = 0.6;
+    }
+
+    function restartTrainSimulation() {
+      simState.direction = 1;
+      simState.progress = 0;
+      simState.dwellTimer = 1.0;
+      simState.lastStationIdx = 0;
+    }
+
+    function setTrainSpeed(spd) {
+      simState.speedMultiplier = spd;
+      document.querySelectorAll('.spd-btn').forEach(b => {
+        b.className = 'spd-btn px-1.5 py-0.5 rounded text-[10px] font-bold text-slate-300 hover:text-white';
+      });
+      const activeBtn = document.getElementById(`spd-${spd}`);
+      if (activeBtn) {
+        activeBtn.className = 'spd-btn px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-600 text-white';
+      }
+    }
+
+    function toggleAutoReverse() {
+      simState.autoReverse = !simState.autoReverse;
+      const btn = document.getElementById('sim-autoreverse-btn');
+      if (btn) {
+        btn.textContent = `↻ Auto-Reverse: ${simState.autoReverse ? 'ON' : 'OFF'}`;
+        btn.className = simState.autoReverse
+          ? 'flex-1 py-1 px-2 rounded-lg text-[10px] font-bold bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-600/30 transition'
+          : 'flex-1 py-1 px-2 rounded-lg text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-600 hover:bg-slate-700 transition';
+      }
+    }
+
+    function toggleFollowTrain() {
+      simState.followTrain = !simState.followTrain;
+      const btn = document.getElementById('sim-follow-btn');
+      if (btn) {
+        btn.textContent = `◎ Follow Metro: ${simState.followTrain ? 'ON' : 'OFF'}`;
+        btn.className = simState.followTrain
+          ? 'flex-1 py-1 px-2 rounded-lg text-[10px] font-bold bg-sky-600/30 text-sky-200 border border-sky-400/50 transition'
+          : 'flex-1 py-1 px-2 rounded-lg text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-600 hover:bg-slate-700 transition';
+      }
+    }
+
+    function scrubTrainProgress(val) {
+      simState.progress = Math.min(1, Math.max(0, Number(val) / 1000));
+      simState.dwellTimer = 0;
+      renderTrainPosition();
+    }
+
+    function updateTrainSimulationFrame(now) {
+      if (!simState.active) return;
+      const dt = Math.min(0.1, (now - simState.lastFrameTime) / 1000);
+      simState.lastFrameTime = now;
+
+      if (simState.playing) {
+        const totalStops = simState.stations.length - 1;
+        if (simState.dwellTimer > 0) {
+          simState.dwellTimer -= dt * simState.speedMultiplier;
+        } else {
+          const baseSegmentRate = 0.42; // segments per second at 1x
+          const deltaProgress = (baseSegmentRate * simState.speedMultiplier * dt) / Math.max(1, totalStops);
+          simState.progress += simState.direction * deltaProgress;
+
+          const currentFloatIdx = simState.progress * totalStops;
+          const nearestIdx = Math.round(currentFloatIdx);
+          if (
+            nearestIdx !== simState.lastStationIdx &&
+            nearestIdx >= 0 &&
+            nearestIdx <= totalStops &&
+            Math.abs(currentFloatIdx - nearestIdx) < 0.06
+          ) {
+            simState.progress = nearestIdx / totalStops;
+            simState.lastStationIdx = nearestIdx;
+            simState.dwellTimer = 0.95;
+          }
+
+          if (simState.progress >= 1) {
+            simState.progress = 1;
+            simState.lastStationIdx = totalStops;
+            if (simState.autoReverse) {
+              simState.direction = -1;
+              simState.dwellTimer = 1.2;
+            } else {
+              simState.playing = false;
+              const playBtn = document.getElementById('sim-play-btn');
+              if (playBtn) playBtn.textContent = 'Replay';
+            }
+          } else if (simState.progress <= 0) {
+            simState.progress = 0;
+            simState.lastStationIdx = 0;
+            if (simState.autoReverse) {
+              simState.direction = 1;
+              simState.dwellTimer = 1.2;
+            } else {
+              simState.playing = false;
+              const playBtn = document.getElementById('sim-play-btn');
+              if (playBtn) playBtn.textContent = 'Replay';
+            }
+          }
+        }
+        renderTrainPosition();
+      }
+
+      if (simState.active) {
+        simState.rafId = requestAnimationFrame(updateTrainSimulationFrame);
+      }
+    }
+
+    function renderTrainPosition() {
+      const n = simState.stations.length;
+      if (n < 2) return;
+
+      const pts = simState.stations.map((st, idx) => {
+        const base = STATION_COORDS[st] || { x: 1000, y: 1000 };
+        if (simState.lineId === 'meerut') {
+          return idx <= 7 ? { x: base.x + 9, y: base.y + 9 } : { x: base.x + 12, y: base.y };
+        }
+        return base;
+      });
+
+      const totalSegs = n - 1;
+      const exactPos = simState.progress * totalSegs;
+      const segIdx = Math.min(totalSegs - 1, Math.max(0, Math.floor(exactPos)));
+      const localT = exactPos - segIdx;
+
+      const pA = pts[segIdx];
+      const pB = pts[segIdx + 1];
+      const curvedSample = sampleSmoothPolyline(pts, simState.progress, simState.lineId === 'meerut' ? 28 : 22);
+      const x = curvedSample.x;
+      const y = curvedSample.y;
+      const angleDeg = simState.direction === 1 ? curvedSample.angleDeg : curvedSample.angleDeg + 180;
+
+      const marker = document.getElementById('live-train-marker');
+      if (marker) {
+        marker.setAttribute('transform', `translate(${x.toFixed(1)}, ${y.toFixed(1)}) rotate(${angleDeg.toFixed(1)})`);
+      }
+
+      const doorsOpen = simState.dwellTimer > 0.15;
+      const doorsFx = document.getElementById('metro-doors-open-fx');
+      const brakeFx = document.getElementById('metro-brake-fx');
+      if (doorsFx) doorsFx.classList.toggle('hidden', !doorsOpen);
+      if (brakeFx) brakeFx.classList.toggle('hidden', !doorsOpen);
+
+      const activeIdx = Math.min(n - 1, Math.max(0, Math.round(exactPos)));
+      const nextIdx = simState.direction === 1
+        ? Math.min(n - 1, activeIdx + 1)
+        : Math.max(0, activeIdx - 1);
+
+      const statusBadge = document.getElementById('sim-status-badge');
+      const stopCounter = document.getElementById('sim-stop-counter');
+      const curEl = document.getElementById('sim-current-station');
+      const nextEl = document.getElementById('sim-next-station');
+      const doorL = document.getElementById('sim-door-left');
+      const doorR = document.getElementById('sim-door-right');
+      const doorTxt = document.getElementById('sim-door-text');
+      const slider = document.getElementById('sim-progress-slider');
+
+      if (statusBadge) {
+        statusBadge.textContent = doorsOpen ? '● AT PLATFORM' : '● IN TRANSIT';
+        statusBadge.className = doorsOpen ? 'text-amber-400' : 'text-emerald-400';
+      }
+      if (stopCounter) stopCounter.textContent = `Stop ${activeIdx + 1} / ${n}`;
+      if (curEl) curEl.textContent = simState.stations[activeIdx];
+      if (nextEl) {
+        nextEl.textContent = activeIdx === nextIdx
+          ? `Terminus (${simState.autoReverse ? 'Reversing Shortly' : 'End of Line'})`
+          : `Next: ${simState.stations[nextIdx]}`;
+      }
+      if (doorL && doorR && doorTxt) {
+        doorL.className = `h-2 flex-1 rounded transition-all ${doorsOpen ? 'bg-emerald-400 -translate-x-1' : 'bg-slate-600'}`;
+        doorR.className = `h-2 flex-1 rounded transition-all ${doorsOpen ? 'bg-emerald-400 translate-x-1' : 'bg-slate-600'}`;
+        doorTxt.textContent = doorsOpen ? 'OPEN' : 'CLOSED';
+        doorTxt.className = `text-[10px] font-bold ${doorsOpen ? 'text-emerald-400' : 'text-slate-400'}`;
+      }
+      if (slider) slider.value = Math.round(simState.progress * 1000);
+
+      if (simState.followTrain) {
+        mapTransform.x = 600 - x * mapTransform.scale;
+        mapTransform.y = 360 - y * mapTransform.scale;
+        applyMapTransform();
+      }
+    }
+
+    // =========================================================================
+    // 5. SHORTEST-PATH ROUTING & OFFICIAL FARE / TRAVEL TIME ENGINE
+    // =========================================================================
+    function buildRoutingGraph(includeUpcoming) {
+      const adj = {};
+      const addEdge = (u, v, lineId, km, isSkywalk = false) => {
+        if (!adj[u]) adj[u] = [];
+        adj[u].push({ to: v, lineId, km, isSkywalk });
+      };
+
+      Object.keys(CORRIDOR_STATIONS).forEach(rawLid => {
+        if (rawLid === 'rrts') return; // Handled via rrts_main_line & rrts_duhai_spur
+        const lid = getCanonicalLineId(rawLid);
+        const meta = LINE_META[lid];
+        if (!meta) return;
+        if (!includeUpcoming && meta.status === 'upcoming') return;
+
+        const list = CORRIDOR_STATIONS[rawLid];
+        const kmHop = CORRIDOR_KM_PER_HOP[lid] || 1.3;
+        const isOneWayRapidLoop = rawLid === 'rapid';
+
+        for (let i = 0; i < list.length - 1; i++) {
+          const u = list[i];
+          const v = list[i + 1];
+          addEdge(u, v, lid, kmHop, false);
+          if (!isOneWayRapidLoop || i < 5) {
+            addEdge(v, u, lid, kmHop, false);
+          }
+        }
+      });
+
+      SKYWALK_LINKS.forEach(sw => {
+        addEdge(sw.from, sw.to, 'skywalk', 0.3, true);
+        addEdge(sw.to, sw.from, 'skywalk', 0.3, true);
+      });
+
+      return adj;
+    }
+
+    function findBestRoute(origin, dest, includeUpcoming, preference) {
+      const adj = buildRoutingGraph(includeUpcoming);
+      if (!adj[origin] || !adj[dest]) return null;
+      if (origin === dest) return [];
+
+      const transferPenalty = preference === 'min_transfer' ? 45 : 6;
+      const dist = {};
+      const prev = {};
+      const visited = new Set();
+
+      const startKey = `${origin}|START`;
+      dist[startKey] = 0;
+      const pq = [{ key: startKey, station: origin, line: 'START', cost: 0 }];
+
+      while (pq.length > 0) {
+        pq.sort((a, b) => a.cost - b.cost);
+        const cur = pq.shift();
+        if (visited.has(cur.key)) continue;
+        visited.add(cur.key);
+
+        if (cur.station === dest) {
+          const steps = [];
+          let traceKey = cur.key;
+          while (prev[traceKey]) {
+            steps.unshift(prev[traceKey]);
+            traceKey = prev[traceKey].fromKey;
+          }
+          return steps;
+        }
+
+        const neighbors = adj[cur.station] || [];
+        for (const edge of neighbors) {
+          const nextKey = `${edge.to}|${edge.lineId}`;
+          if (visited.has(nextKey)) continue;
+          const isTransfer = cur.line !== 'START' && cur.line !== edge.lineId;
+          const speedFactor = edge.lineId === 'rrts' ? 0.6 : (edge.lineId === 'orange' ? 0.7 : 1.0);
+          const stepCost = edge.km * speedFactor + (isTransfer ? transferPenalty : 0) + (edge.isSkywalk ? 8 : 0);
+          const newCost = cur.cost + stepCost;
+          if (dist[nextKey] === undefined || newCost < dist[nextKey]) {
+            dist[nextKey] = newCost;
+            prev[nextKey] = {
+              fromKey: cur.key,
+              from: cur.station,
+              to: edge.to,
+              lineId: edge.lineId,
+              km: edge.km,
+              isSkywalk: edge.isSkywalk
+            };
+            pq.push({ key: nextKey, station: edge.to, line: edge.lineId, cost: newCost });
+          }
+        }
+      }
+      return null;
+    }
+
+    function computeOfficialFareAndTime(steps, dayType, timeType, rrtsClass) {
+      let totalKm = 0;
+      let totalMinutes = 0;
+      let standardFare = 0;
+      let smartCardFare = 0;
+
+      // Group consecutive steps by corridor
+      const legs = [];
+      for (const s of steps) {
+        if (legs.length === 0 || legs[legs.length - 1].lineId !== s.lineId) {
+          legs.push({
+            lineId: s.lineId,
+            from: s.from,
+            to: s.to,
+            stops: [s.from, s.to],
+            km: s.km,
+            isSkywalk: s.isSkywalk
+          });
+        } else {
+          const last = legs[legs.length - 1];
+          last.to = s.to;
+          last.stops.push(s.to);
+          last.km += s.km;
+        }
+      }
+
+      let dmrcKm = 0;
+      let hasDmrcStandard = false;
+
+      legs.forEach((leg, idx) => {
+        totalKm += leg.km;
+        if (idx > 0 && !leg.isSkywalk) {
+          totalMinutes += 4; // Interchange transfer buffer
+        }
+
+        if (leg.isSkywalk) {
+          totalMinutes += 4;
+          return;
+        }
+
+        if (leg.lineId === 'rrts') {
+          const iA = RRTS_MATRIX_STATIONS.indexOf(leg.from);
+          const iB = RRTS_MATRIX_STATIONS.indexOf(leg.to);
+          let baseRrts = (iA !== -1 && iB !== -1)
+            ? RRTS_STANDARD_FARE_MATRIX[iA][iB]
+            : Math.min(210, Math.max(20, Math.round((leg.km / 82) * 210 / 10) * 10));
+          if (rrtsClass === 'premium') {
+            baseRrts = baseRrts === 210 ? 250 : Math.ceil((baseRrts * 1.2) / 5) * 5;
+          }
+          standardFare += baseRrts;
+          smartCardFare += Math.round(baseRrts * 0.9);
+          // 100 km/h average RRTS commercial speed + 0.45 min dwell per stop
+          totalMinutes += Math.max(3, Math.round((leg.km / 100) * 60 + (leg.stops.length - 1) * 0.45));
+        } else if (leg.lineId === 'meerut') {
+          const iA = MEERUT_MATRIX_STATIONS.indexOf(leg.from);
+          const iB = MEERUT_MATRIX_STATIONS.indexOf(leg.to);
+          const baseMeerut = (iA !== -1 && iB !== -1)
+            ? MEERUT_FARE_MATRIX[iA][iB]
+            : Math.min(60, Math.max(20, Math.round((leg.km / 21) * 60 / 10) * 10));
+          standardFare += baseMeerut;
+          smartCardFare += Math.round(baseMeerut * 0.9);
+          // 55 km/h average Meerut Metro commercial speed
+          totalMinutes += Math.max(2, Math.round((leg.km / 55) * 60 + (leg.stops.length - 1) * 0.35));
+        } else if (leg.lineId === 'orange') {
+          const iA = ORANGE_STATIONS.indexOf(leg.from);
+          const iB = ORANGE_STATIONS.indexOf(leg.to);
+          const baseOrange = (iA !== -1 && iB !== -1) ? ORANGE_FARE_MATRIX[iA][iB] : 43;
+          standardFare += baseOrange;
+          smartCardFare += Math.round(baseOrange * 0.9);
+          totalMinutes += Math.max(4, Math.round((leg.km / 75) * 60 + (leg.stops.length - 1) * 0.5));
+        } else if (leg.lineId === 'aqua') {
+          const hops = leg.stops.length - 1;
+          const aquaFare = hops <= 1 ? 10 : hops <= 2 ? 15 : hops <= 5 ? 20 : hops <= 9 ? 30 : hops <= 14 ? 40 : 50;
+          standardFare += aquaFare;
+          smartCardFare += Math.round(aquaFare * 0.9);
+          totalMinutes += Math.max(2, Math.round(hops * 2.1));
+        } else if (leg.lineId === 'rapid') {
+          const hops = leg.stops.length - 1;
+          const rapidFare = hops <= 2 ? 20 : hops <= 5 ? 25 : 35;
+          standardFare += rapidFare;
+          smartCardFare += Math.round(rapidFare * 0.9);
+          totalMinutes += Math.max(2, Math.round(hops * 1.9));
+        } else {
+          // DMRC & GMRL Unified Slab System (w.e.f. 25 Aug 2025)
+          hasDmrcStandard = true;
+          dmrcKm += leg.km;
+          totalMinutes += Math.max(2, Math.round((leg.stops.length - 1) * 2.0));
+        }
+      });
+
+      if (hasDmrcStandard) {
+        let slab = 11;
+        if (dmrcKm <= 2) slab = 11;
+        else if (dmrcKm <= 5) slab = 21;
+        else if (dmrcKm <= 12) slab = 32;
+        else if (dmrcKm <= 21) slab = 43;
+        else if (dmrcKm <= 32) slab = 54;
+        else slab = 64;
+
+        if (dayType === 'sunday' && slab > 54) {
+          slab = 54;
+        }
+        const discountRate = timeType === 'offpeak' ? 0.8 : 0.9;
+        standardFare += slab;
+        smartCardFare += Math.max(10, Math.round(slab * discountRate));
+      }
+
+      return {
+        legs,
+        totalKm: totalKm.toFixed(1),
+        totalMinutes,
+        totalStops: steps.length,
+        standardFare,
+        smartCardFare
+      };
+    }
+
+    function swapRouteStations() {
+      const o = document.getElementById('route-origin');
+      const d = document.getElementById('route-dest');
+      if (!o || !d) return;
+      const tmp = o.value;
+      o.value = d.value;
+      d.value = tmp;
+      calculateRoute();
+    }
+
+    function calculateRoute() {
+      const panel = document.getElementById('route-results-panel');
+      if (!panel) return;
+
+      const origin = (document.getElementById('route-origin')?.value || '').trim();
+      const dest = (document.getElementById('route-dest')?.value || '').trim();
+      const includeUpcoming = !!document.getElementById('route-include-upcoming')?.checked;
+      const preference = document.getElementById('route-preference')?.value || 'shortest';
+      const dayType = document.getElementById('fare-day-type')?.value || 'weekday';
+      const timeType = document.getElementById('fare-time-type')?.value || 'peak';
+      const rrtsClass = document.getElementById('rrts-coach-class')?.value || 'standard';
+
+      if (!origin || !dest || origin === dest) {
+        panel.innerHTML = `<div class="p-6 text-center text-xs text-slate-500">Select two distinct stations to view step-by-step interchanges, travel duration, and official fare.</div>`;
+        return;
+      }
+
+      const steps = findBestRoute(origin, dest, includeUpcoming, preference);
+      if (!steps) {
+        panel.innerHTML = `
+          <div class="p-6 text-center space-y-2">
+            <div class="text-sm font-extrabold text-red-600">No Direct Corridor Path Found</div>
+            <p class="text-xs text-slate-500">Verify station names or enable <strong>Include Upcoming Ph-IV/VA, NMRC &amp; GMRL</strong> if one of the stations is under construction.</p>
+          </div>
+        `;
+        return;
+      }
+
+      const summary = computeOfficialFareAndTime(steps, dayType, timeType, rrtsClass);
+      const interchanges = Math.max(0, summary.legs.filter(l => !l.isSkywalk).length - 1);
+
+      const legsHtml = summary.legs.map((leg, i) => {
+        if (leg.isSkywalk) {
+          return `
+            <div class="p-3 rounded-xl bg-sky-50 border border-sky-200 flex items-center justify-between text-xs">
+              <span class="font-bold text-sky-900">⇄ Skywalk Foot Overbridge: ${leg.from} → ${leg.to}</span>
+              <span class="text-sky-700 font-semibold">~4 mins walk</span>
+            </div>
+          `;
+        }
+        const m = LINE_META[leg.lineId];
+        return `
+          <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="px-2.5 py-0.5 rounded-md text-xs font-extrabold" style="background:${m.color};color:${m.textColor}">${m.name}</span>
+              <span class="text-[11px] font-bold text-slate-500">${leg.stops.length - 1} stops • ${leg.km.toFixed(1)} km</span>
+            </div>
+            <div class="text-xs font-bold text-slate-800">Board at <span class="text-slate-950 underline">${leg.from}</span> → Alight at <span class="text-slate-950 underline">${leg.to}</span></div>
+            <div class="text-[11px] text-slate-500 leading-relaxed">${leg.stops.join(' → ')}</div>
+          </div>
+        `;
+      }).join('');
+
+      panel.innerHTML = `
+        <div class="space-y-4">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <div class="p-3 rounded-xl bg-slate-900 text-white">
+              <div class="text-[10px] uppercase font-bold text-slate-400">Token / QR Fare</div>
+              <div class="text-xl font-extrabold mt-0.5">₹${summary.standardFare}</div>
+            </div>
+            <div class="p-3 rounded-xl bg-emerald-600 text-white">
+              <div class="text-[10px] uppercase font-bold text-emerald-100">Smart Card / NCMC</div>
+              <div class="text-xl font-extrabold mt-0.5">₹${summary.smartCardFare}</div>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-100 text-slate-900">
+              <div class="text-[10px] uppercase font-bold text-slate-500">Est. Time</div>
+              <div class="text-xl font-extrabold mt-0.5">${summary.totalMinutes} min</div>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-100 text-slate-900">
+              <div class="text-[10px] uppercase font-bold text-slate-500">Distance / Transfers</div>
+              <div class="text-base font-extrabold mt-1">${summary.totalKm} km • ${interchanges}</div>
+            </div>
+          </div>
+          <div class="space-y-2.5 max-h-[54vh] overflow-y-auto custom-scrollbar pr-1">${legsHtml}</div>
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // 6. TABS, DIRECTORY, UPCOMING CORRIDORS & NETWORK STATS POPULATION
+    // =========================================================================
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white transition';
+      });
+      const targetPanel = document.getElementById(`tab-${tabId}`);
+      const targetBtn = document.getElementById(`tab-btn-${tabId}`);
+      if (targetPanel) targetPanel.classList.remove('hidden');
+      if (targetBtn) targetBtn.className = 'tab-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-red-600 text-white shadow transition';
+    }
+
+    function viewAllUpcomingOnMap() {
+      switchTab('map');
+      setNetworkLayerMode('upcoming');
+      filterMapLine('all');
+    }
+
+    function renderSidebarAndStats() {
+      const sideList = document.getElementById('sidebar-corridor-list');
+      const statsBody = document.getElementById('stats-operational-tbody');
+      const upGrid = document.getElementById('upcoming-cards-grid');
+
+      const opKeys = Object.keys(LINE_META).filter(k => LINE_META[k].status === 'operational');
+      const upKeys = Object.keys(LINE_META).filter(k => LINE_META[k].status === 'upcoming');
+
+      if (sideList) {
+        sideList.innerHTML = opKeys.map(lid => {
+          const m = LINE_META[lid];
+          return `
+            <button onclick="filterMapLine('${lid}')" class="w-full text-left p-2 rounded-xl border border-slate-200 hover:border-slate-400 bg-slate-50/70 hover:bg-white transition flex items-center justify-between gap-2">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${m.color}"></span>
+                <span class="text-xs font-bold text-slate-800 truncate">${m.shortName}</span>
+              </div>
+              <span class="text-[10px] font-extrabold text-slate-500 shrink-0">${m.officialStations} stns</span>
+            </button>
+          `;
+        }).join('');
+      }
+
+      if (statsBody) {
+        statsBody.innerHTML = opKeys.map(lid => {
+          const m = LINE_META[lid];
+          return `
+            <tr class="hover:bg-slate-50">
+              <td class="py-2.5 px-3 font-bold text-slate-900 flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full" style="background:${m.color}"></span>${m.name}
+              </td>
+              <td class="py-2.5 px-3 text-slate-600">${m.terminals}</td>
+              <td class="py-2.5 px-3 font-semibold text-slate-700">${m.operator}</td>
+              <td class="py-2.5 px-3 text-right font-mono font-bold">${m.lengthKm.toFixed(3)}</td>
+              <td class="py-2.5 px-3 text-right font-bold">${m.officialStations}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      if (upGrid) {
+        upGrid.innerHTML = upKeys.map(lid => {
+          const m = LINE_META[lid];
+          return `
+            <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-2.5 flex flex-col justify-between">
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="px-2.5 py-0.5 rounded-md text-xs font-extrabold" style="background:${m.color};color:${m.textColor}">${m.name}</span>
+                  <span class="text-xs font-extrabold text-slate-600">${m.lengthKm.toFixed(3)} km • ${m.officialStations} Stns</span>
+                </div>
+                <p class="text-xs text-slate-600 font-medium">${m.terminals}</p>
+              </div>
+              <button onclick="switchTab('map'); filterMapLine('${lid}');" class="w-full py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition">Simulate Corridor on Map</button>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    let currentDirFilter = 'all';
+    function setDirFilter(f) {
+      currentDirFilter = f;
+      document.querySelectorAll('.dir-filter-btn').forEach(b => {
+        b.className = 'dir-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700';
+      });
+      const active = document.getElementById(`dir-btn-${f}`);
+      if (active) active.className = 'dir-filter-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-white';
+      filterDirectory();
+    }
+
+    function filterDirectory() {
+      const grid = document.getElementById('directory-cards-grid');
+      if (!grid) return;
+      const q = (document.getElementById('dir-search-input')?.value || '').trim().toLowerCase();
+
+      const filtered = ALL_STATIONS.filter(st => {
+        const lines = STATION_LINES[st] || [];
+        if (q && !st.toLowerCase().includes(q) && !lines.some(l => LINE_META[l]?.name.toLowerCase().includes(q))) {
+          return false;
+        }
+        if (currentDirFilter === 'interchange') return lines.length > 1;
+        if (currentDirFilter === 'airport') return st.toLowerCase().includes('airport') || st.toLowerCase().includes('aerocity');
+        if (currentDirFilter === 'upcoming') return lines.every(l => LINE_META[l]?.status === 'upcoming');
+        return true;
+      });
+
+      grid.innerHTML = filtered.slice(0, 160).map(st => {
+        const lines = STATION_LINES[st] || [];
+        const badges = lines.map(lid => {
+          const m = LINE_META[lid];
+          return `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold" style="background:${m.color};color:${m.textColor}">${m.shortName}</span>`;
+        }).join(' ');
+        return `
+          <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-sm flex flex-col justify-between gap-2">
+            <div>
+              <div class="text-xs font-extrabold text-slate-900">${st}</div>
+              <div class="flex flex-wrap gap-1 mt-1.5">${badges}</div>
+            </div>
+            <button onclick="switchTab('map'); jumpToStationFromSearch('${st.replace(/'/g, "\\'")}');" class="text-[11px] font-bold text-red-600 hover:text-red-700 text-left">Locate on Map →</button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Initialize Application
+    window.addEventListener('DOMContentLoaded', () => {
+      buildSchematicCoordinates();
+      renderLineFilterPills();
+      applyMapTransform();
+      renderSchematicMap();
+      setupMapPanZoom();
+      renderSidebarAndStats();
+      filterDirectory();
+      calculateRoute();
+    });
+  </script>
+</body>
+</html>
