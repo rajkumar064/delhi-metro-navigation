@@ -84,7 +84,7 @@
       </div>
 
       <!-- Navigation Tabs -->
-      <nav class="flex flex-wrap items-center gap-1.5 bg-slate-800/90 p-1 rounded-xl border border-slate-700">
+          <nav class="flex flex-wrap items-center gap-1.5 bg-slate-800/90 p-1 rounded-xl border border-slate-700">
         <button id="tab-btn-map" onclick="switchTab('map')" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-red-600 text-white shadow transition">Interactive Map &amp; Sim</button>
         <button id="tab-btn-upcoming" onclick="switchTab('upcoming')" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white transition">Upcoming Ph-IV/VA, NMRC &amp; GMRL (7)</button>
         <button id="tab-btn-planner" onclick="switchTab('planner')" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white transition">Route &amp; Official Fare</button>
@@ -106,7 +106,7 @@
           <div class="flex flex-wrap items-center gap-1.5">
             <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mr-1">Layer:</span>
             <button id="layer-btn-operational" onclick="setNetworkLayerMode('operational')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-900 text-white transition">Operational (14)</button>
-            <button id="layer-btn-all" onclick="setNetworkLayerMode('all')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">All Networks (21)</button>
+            <button id="layer-btn-all" onclick="setNetworkLayerMode('all')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">All Networks (19)</button>
             <button id="layer-btn-upcoming" onclick="setNetworkLayerMode('upcoming')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">Upcoming Ph-IV/VA, NMRC &amp; GMRL (7)</button>
           </div>
 
@@ -334,9 +334,9 @@
       <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 class="text-lg font-extrabold text-slate-900">Upcoming DMRC Phase-IV, Phase-VA, NMRC &amp; Gurugram Metro (GMRL)</h2>
-          <p class="text-xs text-slate-500 mt-0.5">7 Under-Construction / Approved Corridors • 144.511 km Total • Click any corridor to simulate a live train on the map</p>
+          <p class="text-xs text-slate-500 mt-0.5">7 Unified Under-Construction / Approved Corridors &amp; Extensions (incl. Unified Line 8 Botanical Garden ↔ Inderlok &amp; Unified Aqua Line Knowledge Park-V ↔ Boraki MMTH) • 164.546 km Total</p>
         </div>
-        <button onclick="viewAllUpcomingOnMap()" class="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition shadow">View All 7 Upcoming Lines on Map</button>
+        <button onclick="viewAllUpcomingOnMap()" class="px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition shadow">View All Upcoming Lines on Map</button>
       </div>
       <div id="upcoming-cards-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
     </section>
@@ -443,8 +443,8 @@
         </div>
         <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
           <div class="text-[11px] font-bold uppercase text-slate-400">Upcoming Ph-IV/VA, NMRC &amp; GMRL</div>
-          <div class="text-2xl font-extrabold text-purple-600 mt-1">144.511 km</div>
-          <div class="text-xs text-slate-600 font-semibold mt-0.5">7 Dedicated Corridors</div>
+          <div class="text-2xl font-extrabold text-purple-600 mt-1">147.111 km</div>
+          <div class="text-xs text-slate-600 font-semibold mt-0.5">7 Unified Corridors &amp; Extensions</div>
         </div>
       </div>
 
@@ -529,8 +529,8 @@
       },
       magenta: {
         id: 'magenta', name: 'Line 8 - Magenta Line', shortName: 'Magenta Line 8', operator: 'DMRC',
-        color: '#C026D3', textColor: '#FFFFFF', lengthKm: 49.195, officialStations: 33, status: 'operational',
-        terminals: 'Krishna Park Extn. ↔ Botanical Garden & Deepali Chowk ↔ Majlis Park'
+        color: '#C026D3', textColor: '#FFFFFF', lengthKm: 89.013, officialStations: 64, status: 'operational',
+        terminals: 'Botanical Garden ↔ Inderlok (Unified Single Corridor Service)'
       },
       grey: {
         id: 'grey', name: 'Line 9 - Grey Line', shortName: 'Grey Line 9', operator: 'DMRC',
@@ -544,8 +544,8 @@
       },
       aqua: {
         id: 'aqua', name: 'Aqua Line (NMRC)', shortName: 'Aqua Line', operator: 'NMRC',
-        color: '#06B6D4', textColor: '#0F172A', lengthKm: 29.168, officialStations: 21, status: 'operational',
-        terminals: 'Noida Sector-51 ↔ Depot Station (Greater Noida)'
+        color: '#06B6D4', textColor: '#0F172A', lengthKm: 49.203, officialStations: 34, status: 'operational',
+        terminals: 'Knowledge Park-V ↔ Noida Sec-70/61/51 ↔ Depot Station ↔ Boraki MMTH (Unified Service)'
       },
       rapid: {
         id: 'rapid', name: 'Rapid Metro (Gurugram)', shortName: 'Rapid Metro', operator: 'DMRC/RMGL',
@@ -558,16 +558,11 @@
         terminals: 'Sarai Kale Khan - Nizamuddin ↔ Modipuram'
       },
       meerut: {
-        id: 'meerut', name: 'Meerut Metro', shortName: 'Meerut Metro', operator: 'NCRTC',
-        color: '#0EA5E9', textColor: '#FFFFFF', lengthKm: 21.000, officialStations: 12, status: 'operational',
+        id: 'meerut', name: 'Meerut Metro (NCRTC)', shortName: 'Meerut Metro', operator: 'NCRTC',
+        color: '#0EA5E9', textColor: '#FFFFFF', lengthKm: 21.000, officialStations: 13, status: 'operational',
         terminals: 'Meerut South ↔ Modipuram Depot'
       },
-      // 6 UPCOMING CORRIDORS (SOLID FUNCTIONAL LINES WHEN SELECTED)
-      up_magenta_ext: {
-        id: 'up_magenta_ext', name: 'Magenta Line Ext. (Ph-IV & V-A)', shortName: 'Magenta Ext. (Ph-IV/VA)', operator: 'DMRC',
-        color: '#C026D3', textColor: '#FFFFFF', lengthKm: 39.818, officialStations: 31, status: 'upcoming',
-        terminals: 'Krishna Park Extn. ↔ Deepali Chowk • Majlis Park & Inderlok ↔ Central Vista ↔ Indraprastha'
-      },
+      // 5 DEDICATED UPCOMING CORRIDORS (UPCOMING MAGENTA IS UNIFIED INTO LINE 8 ABOVE)
       up_golden: {
         id: 'up_golden', name: 'Golden Line 10 (Unified Ph-IV & V-A)', shortName: 'Golden Line 10', operator: 'DMRC',
         color: '#D97706', textColor: '#FFFFFF', lengthKm: 29.785, officialStations: 19, status: 'upcoming',
@@ -594,6 +589,17 @@
         terminals: 'Millennium City Centre Gurugram ↔ Old Gurugram ↔ Palam Vihar ↔ Cyber City'
       }
     };
+
+    const UPCOMING_MAGENTA_SEGMENTS = new Set([
+      'up_magenta_ext',
+      'up_magenta_inderlok',
+      'up_magenta_west'
+    ]);
+
+    const UPCOMING_AQUA_SEGMENTS = new Set([
+      'up_aqua_kp5',
+      'up_aqua_boraki'
+    ]);
 
     const CORRIDOR_STATIONS = {
       red: [
@@ -718,6 +724,25 @@
         'Meerut North', 'Modipuram', 'Modipuram Depot'
       ],
       // UPCOMING CORRIDORS
+      up_magenta_full_service: [
+        'Botanical Garden', 'Okhla Bird Sanctuary', 'Kalindi Kunj', 'Jasola Vihar Shaheen Bagh',
+        'Okhla Vihar', 'Jamia Millia Islamia', 'Sukhdev Vihar', 'Okhla NSIC',
+        'Kalkaji Mandir', 'Nehru Enclave', 'Greater Kailash', 'Chirag Delhi',
+        'Panchsheel Park', 'Hauz Khas', 'IIT', 'R.K. Puram',
+        'Munirka', 'Vasant Vihar', 'Shankar Vihar', 'Terminal 1-IGI Airport',
+        'Sadar Bazar Cantonment', 'Palam', 'Dashrathpuri', 'Dabri Mor - Janakpuri South',
+        'Janakpuri West', 'Krishna Park Extn.', 'Keshopur', 'Paschim Vihar',
+        'Peeragarhi', 'Mangolpuri Metro Station', 'West Enclave', 'Pushpanjali',
+        'Dr. Baba Saheb Ambedkar Hospital', 'Deepali Chowk', 'Madhuban Chowk', 'Prashant Vihar',
+        'North Pitampura', 'Haiderpur Badli Mor', 'Bhalswa', 'Majlis Park',
+        'Azadpur', 'Ashok Vihar', 'Derawal Nagar', 'Ghanta Ghar',
+        'Pulbangash', 'Sadar Bazar Metro Station', 'Nabi Karim', 'R.K. Ashram Marg',
+        'Shivaji Stadium', 'Yuge Yugeen Bharat', 'Central Secretariat', 'CCS Building',
+        'India Gate', 'War Memorial-High Court', 'Baroda House', 'Bharat Mandapam',
+        'Indraprastha', 'Delhi Sachivalaya-IG Stadium', 'Delhi Gate', 'New Delhi',
+        'Nabi Karim', 'Jhandewalan Mandir', 'Ajmal Khan Park', 'Sarai Rohilla',
+        'Daya Basti', 'Inderlok'
+      ],
       up_magenta_ext: [
         'Majlis Park', 'Azadpur', 'Ashok Vihar', 'Derawal Nagar', 'Ghanta Ghar',
         'Pulbangash', 'Sadar Bazar Metro Station', 'Nabi Karim', 'R.K. Ashram Marg',
@@ -758,6 +783,27 @@
         'Noida Sector-97', 'Noida Sector-105', 'Noida Sector-108',
         'Noida Sector-93', 'Panchsheel Balak Inter College', 'Noida Sector-142'
       ],
+      up_aqua_kp5: [
+        'Noida Sector-51', 'Noida Sector-61', 'Noida Sector-70', 'Noida Sector-122', 'Noida Sector-123',
+        'Greater Noida Sector-4', 'Ecotech-12', 'Greater Noida Sector-2',
+        'Greater Noida Sector-3', 'Greater Noida Sector-10', 'Greater Noida Sector-12',
+        'Knowledge Park-V'
+      ],
+      up_aqua_boraki: [
+        'Depot Station', 'Junpat', 'Boraki MMTH'
+      ],
+      up_aqua_full_service: [
+        'Knowledge Park-V', 'Greater Noida Sector-12', 'Greater Noida Sector-10',
+        'Greater Noida Sector-3', 'Greater Noida Sector-2', 'Ecotech-12',
+        'Greater Noida Sector-4', 'Noida Sector-123', 'Noida Sector-122',
+        'Noida Sector-70', 'Noida Sector-61', 'Noida Sector-51',
+        'Noida Sector-50', 'Noida Sector-76', 'Noida Sector-101',
+        'Noida Sector-81', 'NSEZ', 'Noida Sector-83', 'Noida Sector-137',
+        'Noida Sector-142', 'Noida Sector-143', 'Noida Sector-144', 'Noida Sector-145',
+        'Noida Sector-146', 'Noida Sector-147', 'Noida Sector-148', 'Knowledge Park-II',
+        'Pari Chowk', 'Alpha-1', 'Delta-1', 'GNIDA Office', 'Depot Station',
+        'Junpat', 'Boraki MMTH'
+      ],
       up_gmrl: [
         'Millennium City Centre Gurugram', 'Sector 45', 'Cyber Park',
         'Dist. Shopping Centre Sector 47', 'Subhash Chowk', 'Sector 48',
@@ -778,8 +824,13 @@
       pink_shiv_maujpur: 'pink',
       rrts_main_line: 'rrts',
       rrts_duhai_spur: 'rrts',
-      up_magenta_inderlok: 'up_magenta_ext',
-      up_magenta_west: 'up_magenta_ext',
+      up_magenta_full_service: 'magenta',
+      up_magenta_ext: 'magenta',
+      up_magenta_inderlok: 'magenta',
+      up_magenta_west: 'magenta',
+      up_aqua_kp5: 'aqua',
+      up_aqua_boraki: 'aqua',
+      up_aqua_full_service: 'aqua',
       up_gmrl_spur: 'up_gmrl'
     };
 
@@ -814,9 +865,9 @@
 
     const CORRIDOR_KM_PER_HOP = {
       red: 1.23, yellow: 1.36, blue: 1.145, blue_branch: 1.21, green: 1.31,
-      violet: 1.40, pink: 1.59, magenta: 1.54, grey: 1.83, orange: 4.15,
-      aqua: 1.46, rapid: 1.17, rrts: 6.31, meerut: 1.75,
-      up_magenta_ext: 1.33, up_golden: 1.65,
+      violet: 1.40, pink: 1.59, magenta: 1.48, grey: 1.83, orange: 4.15,
+      aqua: 1.49, rapid: 1.17, rrts: 6.31, meerut: 1.75,
+      up_golden: 1.65,
       up_golden_branch: 1.19, up_red_ext: 1.26, up_aqua_ext: 1.44, up_gmrl: 1.10
     };
 
@@ -990,8 +1041,8 @@
         'Sikanderpur': { x: 1060, y: 2260 },
         'Saket G Block': { x: 1460, y: 2080 },
 
-        'Noida Sector-52': { x: 2560, y: 1520 },
-        'Noida Sector-51': { x: 2620, y: 1590 },
+        'Noida Sector-52': { x: 2540, y: 1500 },
+        'Noida Sector-51': { x: 2630, y: 1620 },
         'Noida Sector-142': { x: 2780, y: 2000 }
       });
 
@@ -1025,7 +1076,7 @@
       setPoly(['Rajiv Chowk', 'Barakhamba Road', 'Mandi House', 'Supreme Court', 'Indraprastha', 'Yamuna Bank'], [[1320, 1180], [1480, 1220], [1780, 1220]]);
       setPoly(['Yamuna Bank', 'Akshardham', 'Mayur Vihar-I', 'Mayur Vihar Extension', 'New Ashok Nagar'], [[1780, 1220], [1880, 1380], [1995, 1485]]);
       setPoly(['New Ashok Nagar', 'Noida Sector-15', 'Noida Sector-16', 'Noida Sector-18', 'Botanical Garden'], [[1995, 1485], [2200, 1680]]);
-      setPoly(['Botanical Garden', 'Golf Course', 'Noida City Centre', 'Noida Sector-34', 'Noida Sector-52', 'Noida Sector-61', 'Noida Sector-59', 'Noida Sector-62', 'Noida Electronic City'], [[2200, 1680], [2560, 1520], [2800, 1320]]);
+      setPoly(['Botanical Garden', 'Golf Course', 'Noida City Centre', 'Noida Sector-34', 'Noida Sector-52', 'Noida Sector-61', 'Noida Sector-59', 'Noida Sector-62', 'Noida Electronic City'], [[2200, 1680], [2540, 1500], [2630, 1420], [2850, 1255]]);
       setPoly(['Yamuna Bank', 'Laxmi Nagar', 'Nirman Vihar', 'Preet Vihar', 'Karkarduma', 'Anand Vihar ISBT', 'Kaushambi', 'Vaishali'], [[1780, 1220], [1960, 1020], [2240, 1020]]);
 
       // Line 5 - Green Line + Kirti Nagar Spur
@@ -1063,7 +1114,15 @@
       // Airport Express (Orange Line)
       setPoly(['New Delhi', 'Shivaji Stadium', 'Dhaula Kuan', 'Delhi Aerocity', 'Airport (T-3)', 'Dwarka Sector-21', 'Yashobhoomi Dwarka Sec-25'], [[1320, 1060], [1160, 1280], [960, 1540], [780, 1800], [580, 1800], [360, 1800], [360, 1900]]);
 
-      // Aqua Line (NMRC)
+      // Aqua Line (NMRC) - Operational Corridor (Noida Sector-51 to Depot Station, Greater Noida)
+      setPoly([
+        'Noida Sector-51', 'Noida Sector-50', 'Noida Sector-76', 'Noida Sector-101',
+        'Noida Sector-81', 'NSEZ', 'Noida Sector-83', 'Noida Sector-137',
+        'Noida Sector-142', 'Noida Sector-143', 'Noida Sector-144', 'Noida Sector-145',
+        'Noida Sector-146', 'Noida Sector-147', 'Noida Sector-148', 'Knowledge Park-II',
+        'Pari Chowk', 'Alpha-1', 'Delta-1', 'GNIDA Office', 'Depot Station'
+      ], [[2630, 1620], [2630, 1765], [2780, 2000], [3020, 2240], [3260, 2320]]);
+
       // NCRTC Namo Bharat RRTS & Meerut Metro (Official Schematic Alignment + Duhai Depot Spur)
       setPoly([
         'Sarai Kale Khan - Nizamuddin', 'New Ashok Nagar', 'Anand Vihar ISBT'
@@ -1094,6 +1153,15 @@
       setPoly(['Rithala', 'Rohini Sector-25', 'Rohini Sector-26', 'Rohini Sector-31', 'Rohini Sector-32', 'Rohini Sector-36', 'Barwala', 'Rohini Sector-35', 'Rohini Sector-34', 'Bawana Ind. Area-1 Sector-3, 4', 'Bawana Ind. Area-1 Sector-1, 2', 'Bawana JJ Colony', 'Sanoth', 'New Sanoth', 'Depot Station Narela', 'Bhorgarh Village', 'Anaj Mandi Narela', 'Narela DDA Sports Complex', 'Narela', 'Narela Sector-5', 'Kundli', 'Nathupur'], [[520, 520], [320, 320], [520, 140], [780, 80]]);
       setPoly(['Botanical Garden', 'Noida Sector-44', 'Noida Office (Sector-96)', 'Noida Sector-97', 'Noida Sector-105', 'Noida Sector-108', 'Noida Sector-93', 'Panchsheel Balak Inter College', 'Noida Sector-142'], [[2260, 1680], [2480, 1940], [2780, 2000]]);
       setPoly([
+        'Noida Sector-51', 'Noida Sector-61', 'Noida Sector-70', 'Noida Sector-122', 'Noida Sector-123',
+        'Greater Noida Sector-4', 'Ecotech-12', 'Greater Noida Sector-2',
+        'Greater Noida Sector-3', 'Greater Noida Sector-10', 'Greater Noida Sector-12',
+        'Knowledge Park-V'
+      ], [[2630, 1620], [2630, 1420], [2815, 1525], [2945, 1565], [3050, 1545], [3140, 1585], [3215, 1665], [3275, 1760], [3335, 1855]]);
+      setPoly([
+        'Depot Station', 'Junpat', 'Boraki MMTH'
+      ], [[3260, 2320], [3375, 2360], [3490, 2400]]);
+      setPoly([
         'Millennium City Centre Gurugram', 'Sector 45', 'Cyber Park',
         'Dist. Shopping Centre Sector 47', 'Subhash Chowk', 'Sector 48',
         'Sector 72A', 'Hero Honda Chowk', 'Udyog Vihar Phase-6', 'Sector 10',
@@ -1107,7 +1175,7 @@
       ]);
       setPoly(['Basai Village', 'Sector 9', 'Sector 101'], [[220, 2340], [220, 2240], [100, 2160]]);
 
-      // Index stations to lines
+      // Index stations to lines (All Magenta operational & upcoming segments map to unified 'magenta')
       Object.keys(STATION_LINES).forEach(k => delete STATION_LINES[k]);
       Object.keys(CORRIDOR_STATIONS).forEach(rawLid => {
         const lid = getCanonicalLineId(rawLid);
@@ -1204,13 +1272,12 @@
       });
       if (currentLineFilter !== 'all') {
         const sec = QUICK_SECTION_FILTERS.find(s => s.id === currentLineFilter);
-        if (sec && mode === 'upcoming') {
+        if (sec && (mode === 'upcoming' || (sec.id === 'sec_deepali_majlis' && mode !== 'operational'))) {
           currentLineFilter = 'all';
         } else if (!sec && LINE_META[currentLineFilter]) {
           const st = LINE_META[currentLineFilter].status;
-          if ((mode === 'operational' && st !== 'operational') || (mode === 'upcoming' && st !== 'upcoming')) {
-            currentLineFilter = 'all';
-          }
+          if (mode === 'operational' && st !== 'operational') currentLineFilter = 'all';
+          if (mode === 'upcoming' && st !== 'upcoming' && currentLineFilter !== 'magenta' && currentLineFilter !== 'aqua') currentLineFilter = 'all';
         }
       }
       renderLineFilterPills();
@@ -1218,45 +1285,36 @@
     }
 
     function filterMapLine(lineId) {
-      const sectionMeta = QUICK_SECTION_FILTERS.find(s => s.id === lineId);
-      if (sectionMeta) {
-        if (networkLayerMode === 'upcoming') {
+      currentLineFilter = (currentLineFilter === lineId && lineId !== 'all') ? 'all' : lineId;
+      const activeSection = QUICK_SECTION_FILTERS.find(s => s.id === currentLineFilter);
+      if (activeSection) {
+        if (activeSection.id === 'sec_deepali_majlis') {
           setNetworkLayerMode('operational');
+          currentLineFilter = activeSection.id;
+        } else if (networkLayerMode === 'upcoming') {
+          setNetworkLayerMode('operational');
+          currentLineFilter = activeSection.id;
         }
-        currentLineFilter = sectionMeta.id;
-        renderLineFilterPills();
-        renderSchematicMap();
-
-        const stList = CORRIDOR_STATIONS[sectionMeta.corridorKey] || [];
-        if (stList.length >= 2) {
-          startTrainSimulation(sectionMeta.parentLineId, stList, sectionMeta.label, sectionMeta.color);
-          const pts = stList.map(s => STATION_COORDS[s]).filter(Boolean);
-          if (pts.length) {
-            const avgX = pts.reduce((a, p) => a + p.x, 0) / pts.length;
-            const avgY = pts.reduce((a, p) => a + p.y, 0) / pts.length;
-            mapTransform.scale = 1.05;
-            mapTransform.x = 600 - avgX * mapTransform.scale;
-            mapTransform.y = 360 - avgY * mapTransform.scale;
-            applyMapTransform();
-            renderSchematicMap();
-          }
-        }
-        return;
-      }
-
-      if (lineId !== 'all' && LINE_META[lineId]) {
-        const targetStatus = LINE_META[lineId].status;
+      } else if (currentLineFilter !== 'all' && LINE_META[currentLineFilter]) {
+        const targetStatus = LINE_META[currentLineFilter].status;
         if (networkLayerMode === 'operational' && targetStatus === 'upcoming') {
           setNetworkLayerMode('all');
-        } else if (networkLayerMode === 'upcoming' && targetStatus === 'operational') {
+          currentLineFilter = lineId;
+        } else if (networkLayerMode === 'upcoming' && targetStatus === 'operational' && currentLineFilter !== 'magenta' && currentLineFilter !== 'aqua') {
           setNetworkLayerMode('all');
+          currentLineFilter = lineId;
         }
       }
-      currentLineFilter = lineId;
       renderLineFilterPills();
       renderSchematicMap();
-      if (lineId !== 'all' && LINE_META[lineId]) {
-        startTrainSimulation(lineId);
+
+      if (activeSection) {
+        const secStations = CORRIDOR_STATIONS[activeSection.corridorKey] || [];
+        startTrainSimulation(activeSection.parentLineId, secStations, activeSection.label, activeSection.color);
+      } else if (currentLineFilter !== 'all') {
+        startTrainSimulation(currentLineFilter);
+      } else {
+        stopTrainSimulation();
       }
     }
 
@@ -1264,31 +1322,39 @@
       const container = document.getElementById('line-filter-pills');
       if (!container) return;
 
-      const visibleKeys = Object.keys(LINE_META).filter(lid => {
-        if (networkLayerMode === 'operational') return LINE_META[lid].status === 'operational';
-        if (networkLayerMode === 'upcoming') return LINE_META[lid].status === 'upcoming';
+      const visibleLines = Object.keys(LINE_META).filter(lid => {
+        const m = LINE_META[lid];
+        if (networkLayerMode === 'operational') return m.status === 'operational';
+        if (networkLayerMode === 'upcoming') return m.status === 'upcoming' || lid === 'magenta' || lid === 'aqua';
         return true;
       });
 
       let html = `
         <button onclick="filterMapLine('all')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition ${currentLineFilter === 'all' ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'}">
-          All Lines
+          All (${visibleLines.length})
         </button>
       `;
 
-      visibleKeys.forEach(lid => {
+      visibleLines.forEach(lid => {
         const m = LINE_META[lid];
         const active = currentLineFilter === lid;
+        let displayLabel = m.shortName;
+        if (lid === 'magenta' && networkLayerMode === 'upcoming') {
+          displayLabel = 'Line 8 - Magenta (Botanical Garden ↔ Inderlok)';
+        } else if (lid === 'aqua' && networkLayerMode === 'upcoming') {
+          displayLabel = 'Aqua Line (Knowledge Park-V ↔ Boraki MMTH)';
+        }
         html += `
           <button onclick="filterMapLine('${lid}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition flex items-center gap-1.5 ${active ? 'ring-2 ring-offset-1 ring-slate-900' : 'opacity-90 hover:opacity-100'}" style="background:${active ? m.color : '#ffffff'};color:${active ? m.textColor : '#1e293b'};border-color:${m.color}">
             <span class="w-2 h-2 rounded-full shrink-0" style="background:${active ? m.textColor : m.color}"></span>
-            <span>${m.shortName}</span>
+            <span>${displayLabel}</span>
           </button>
         `;
       });
 
       if (networkLayerMode !== 'upcoming') {
         QUICK_SECTION_FILTERS.forEach(sec => {
+          if (sec.id === 'sec_deepali_majlis' && networkLayerMode !== 'operational') return;
           const active = currentLineFilter === sec.id;
           html += `
             <button onclick="filterMapLine('${sec.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition flex items-center gap-1.5 ${active ? 'ring-2 ring-offset-1 ring-slate-900' : 'opacity-95 hover:opacity-100'}" style="background:${active ? sec.color : '#ffffff'};color:${active ? sec.textColor : '#1e293b'};border-color:${sec.color}">
@@ -1351,11 +1417,12 @@
       return d;
     }
 
-    // Samples points along the rounded corner polyline so the train follows the curved bend
-    function buildArticulatedCurveSamples(pts, cornerRadius = 56) {
+    // Builds dense arc-length samples along the rounded corner polyline so each individual
+    // coach & gangway bellows bends smoothly around curves instead of pivoting as one rigid bar.
+    function buildArticulatedCurveSamples(pts, cornerRadius = 24) {
       const sampled = [];
-      if (!pts || pts.length === 0) return { sampled: [{ x: 0, y: 0, cumDist: 0 }], totalDist: 0 };
-      if (pts.length === 1) return { sampled: [{ x: pts[0].x, y: pts[0].y, cumDist: 0 }], totalDist: 0 };
+      if (!pts || pts.length === 0) return { points: [{ x: 0, y: 0 }], cumDist: [0], totalDist: 0 };
+      if (pts.length === 1) return { points: [{ x: pts[0].x, y: pts[0].y }], cumDist: [0], totalDist: 0 };
 
       sampled.push({ x: pts[0].x, y: pts[0].y });
       for (let i = 1; i < pts.length - 1; i++) {
@@ -1374,19 +1441,19 @@
         const cross = (pCurr.x - pPrev.x) * (pNext.y - pCurr.y) - (pCurr.y - pPrev.y) * (pNext.x - pCurr.x);
         const dot = len1 > 0 && len2 > 0 ? (v1x * v2x + v1y * v2y) / (len1 * len2) : 1;
 
-        if (len1 < 1 || len2 < 1 || Math.abs(cross) < 0.5 || dot > 0.995) {
+        if (len1 < 1 || len2 < 1 || Math.abs(cross) < 4 || dot > 0.75) {
           sampled.push({ x: pCurr.x, y: pCurr.y });
           continue;
         }
 
-        const r = Math.min(cornerRadius, len1 * 0.48, len2 * 0.48);
+        const r = Math.min(cornerRadius, len1 * 0.38, len2 * 0.38);
         const sx = pCurr.x + (v1x / len1) * r;
         const sy = pCurr.y + (v1y / len1) * r;
         const ex = pCurr.x + (v2x / len2) * r;
         const ey = pCurr.y + (v2y / len2) * r;
 
         sampled.push({ x: sx, y: sy });
-        const steps = 18;
+        const steps = 16;
         for (let s = 1; s < steps; s++) {
           const t = s / steps;
           const inv = 1 - t;
@@ -1399,40 +1466,38 @@
       }
       sampled.push({ x: pts[pts.length - 1].x, y: pts[pts.length - 1].y });
 
+      const cumDist = [0];
       let totalDist = 0;
-      sampled[0].cumDist = 0;
-      for (let i = 1; i < sampled.length; i++) {
-        totalDist += Math.hypot(sampled[i].x - sampled[i - 1].x, sampled[i].y - sampled[i - 1].y);
-        sampled[i].cumDist = totalDist;
+      for (let i = 0; i < sampled.length - 1; i++) {
+        const d = Math.hypot(sampled[i + 1].x - sampled[i].x, sampled[i + 1].y - sampled[i].y);
+        totalDist += d;
+        cumDist.push(totalDist);
       }
-      return { sampled, totalDist };
+      return { points: sampled, cumDist, totalDist };
     }
 
-    function queryPointAtArcDistance(curveData, targetDist) {
-      const { sampled, totalDist } = curveData;
-      if (!sampled || sampled.length === 0) return { x: 0, y: 0, angleDeg: 0 };
-      if (sampled.length === 1 || totalDist <= 0) return { x: sampled[0].x, y: sampled[0].y, angleDeg: 0 };
+    function queryPointAtArcDistance(curve, targetDist) {
+      const { points, cumDist, totalDist } = curve;
+      if (points.length === 0) return { x: 0, y: 0, angleDeg: 0 };
+      if (points.length === 1 || totalDist <= 0) return { x: points[0].x, y: points[0].y, angleDeg: 0 };
 
       const clamped = Math.min(totalDist, Math.max(0, targetDist));
-      for (let i = 0; i < sampled.length - 1; i++) {
-        const a = sampled[i];
-        const b = sampled[i + 1];
-        if (b.cumDist >= clamped || i === sampled.length - 2) {
-          const segLen = b.cumDist - a.cumDist;
-          const t = segLen <= 0 ? 0 : (clamped - a.cumDist) / segLen;
-          const x = a.x + (b.x - a.x) * t;
-          const y = a.y + (b.y - a.y) * t;
-          const angleDeg = (Math.atan2(b.y - a.y, b.x - a.x) * 180) / Math.PI;
-          return { x, y, angleDeg };
-        }
+      let lo = 0;
+      let hi = cumDist.length - 2;
+      while (lo < hi) {
+        const mid = (lo + hi) >> 1;
+        if (cumDist[mid + 1] < clamped) lo = mid + 1;
+        else hi = mid;
       }
-      const last = sampled[sampled.length - 1];
-      return { x: last.x, y: last.y, angleDeg: 0 };
-    }
 
-    function sampleSmoothPolyline(pts, progress, cornerRadius = 56) {
-      const curveData = buildArticulatedCurveSamples(pts, cornerRadius);
-      return queryPointAtArcDistance(curveData, Math.min(1, Math.max(0, progress)) * curveData.totalDist);
+      const segLen = cumDist[lo + 1] - cumDist[lo];
+      const t = segLen === 0 ? 0 : (clamped - cumDist[lo]) / segLen;
+      const p0 = points[lo];
+      const p1 = points[lo + 1];
+      const x = p0.x + (p1.x - p0.x) * t;
+      const y = p0.y + (p1.y - p0.y) * t;
+      const angleDeg = (Math.atan2(p1.y - p0.y, p1.x - p0.x) * 180) / Math.PI;
+      return { x, y, angleDeg };
     }
 
     function renderSchematicMap() {
@@ -1449,12 +1514,13 @@
 
       // 1. Render Corridors (Solid continuous lines without dots/dashes)
       Object.keys(CORRIDOR_STATIONS).forEach(rawLid => {
-        if (rawLid === 'rrts') return; // Drawn via rrts_main_line + rrts_duhai_spur so Duhai Depot branches cleanly
+        if (rawLid === 'rrts' || rawLid === 'up_magenta_full_service' || rawLid === 'up_aqua_full_service') return; // Drawn via dedicated branch sub-segments
         const lid = getCanonicalLineId(rawLid);
         const meta = LINE_META[lid];
         if (!meta) return;
-        if (networkLayerMode === 'operational' && meta.status !== 'operational') return;
-        if (networkLayerMode === 'upcoming' && meta.status !== 'upcoming') return;
+        const isUpcomingSegment = UPCOMING_MAGENTA_SEGMENTS.has(rawLid) || UPCOMING_AQUA_SEGMENTS.has(rawLid) || meta.status === 'upcoming';
+        if (networkLayerMode === 'operational' && isUpcomingSegment) return;
+        if (networkLayerMode === 'upcoming' && !isUpcomingSegment) return;
 
         const stations = CORRIDOR_STATIONS[rawLid];
         const pts = stations.map(st => STATION_COORDS[st]).filter(Boolean);
@@ -1465,7 +1531,15 @@
           ? pts.map((p, idx) => (idx <= 7 ? { x: p.x + 9, y: p.y + 9 } : { x: p.x + 12, y: p.y }))
           : pts;
 
-        const d = buildSmoothCornerPath(renderPts, rawLid === 'meerut' ? 58 : 56);
+        let d = buildSmoothCornerPath(renderPts, rawLid === 'meerut' ? 58 : 56);
+        if (rawLid === 'up_aqua_kp5' && renderPts.length >= 3) {
+          // Circular arc from Noida Sector-51 into Noida Sector-61, then wide circular arc to Noida Sector-70
+          const p51 = renderPts[0];
+          const p61 = renderPts[1];
+          const p70 = renderPts[2];
+          const restPath = buildSmoothCornerPath(renderPts.slice(2), 56).replace(/^M\s+[\d.-]+\s+[\d.-]+/, '');
+          d = `M ${p51.x} ${p51.y} A 175 175 0 0 1 ${p61.x} ${p61.y} A 165 165 0 0 1 ${p70.x} ${p70.y}${restPath}`;
+        }
         const isLineSelected = activeSection
           ? rawLid === activeSection.corridorKey
           : (currentLineFilter === 'all' || currentLineFilter === lid);
@@ -1500,8 +1574,9 @@
 
         if (mapTransform.scale >= 0.45 || showAllLabels) {
           const swLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-          swLabel.setAttribute('x', (p1.x + p2.x) / 2 + 12);
-          swLabel.setAttribute('y', (p1.y + p2.y) / 2 - 8);
+          swLabel.setAttribute('x', (p1.x + p2.x) / 2 - 14);
+          swLabel.setAttribute('y', (p1.y + p2.y) / 2 + 24);
+          swLabel.setAttribute('text-anchor', 'end');
           swLabel.setAttribute('font-size', '10');
           swLabel.setAttribute('fill', '#0369a1');
           swLabel.setAttribute('class', 'station-label');
@@ -1517,12 +1592,13 @@
 
       // First pass: render station circles & reserve dot bounding boxes
       Object.keys(CORRIDOR_STATIONS).forEach(rawLid => {
-        if (rawLid === 'rrts') return;
+        if (rawLid === 'rrts' || rawLid === 'up_magenta_full_service' || rawLid === 'up_aqua_full_service') return;
         const lid = getCanonicalLineId(rawLid);
         const meta = LINE_META[lid];
         if (!meta) return;
-        if (networkLayerMode === 'operational' && meta.status !== 'operational') return;
-        if (networkLayerMode === 'upcoming' && meta.status !== 'upcoming') return;
+        const isUpcomingSegment = UPCOMING_MAGENTA_SEGMENTS.has(rawLid) || UPCOMING_AQUA_SEGMENTS.has(rawLid) || meta.status === 'upcoming';
+        if (networkLayerMode === 'operational' && isUpcomingSegment) return;
+        if (networkLayerMode === 'upcoming' && !isUpcomingSegment) return;
 
         const stations = CORRIDOR_STATIONS[rawLid];
         stations.forEach((stName, idx) => {
@@ -1594,12 +1670,13 @@
 
       // Second pass: place crisp, staggered, collision-free labels
       Object.keys(CORRIDOR_STATIONS).forEach(rawLid => {
-        if (rawLid === 'rrts') return;
+        if (rawLid === 'rrts' || rawLid === 'up_magenta_full_service' || rawLid === 'up_aqua_full_service') return;
         const lid = getCanonicalLineId(rawLid);
         const meta = LINE_META[lid];
         if (!meta) return;
-        if (networkLayerMode === 'operational' && meta.status !== 'operational') return;
-        if (networkLayerMode === 'upcoming' && meta.status !== 'upcoming') return;
+        const isUpcomingSegment = UPCOMING_MAGENTA_SEGMENTS.has(rawLid) || UPCOMING_AQUA_SEGMENTS.has(rawLid) || meta.status === 'upcoming';
+        if (networkLayerMode === 'operational' && isUpcomingSegment) return;
+        if (networkLayerMode === 'upcoming' && !isUpcomingSegment) return;
 
         const stations = CORRIDOR_STATIONS[rawLid];
         const isLineFocused = activeSection
@@ -1699,6 +1776,46 @@
             ? [
                 { dx: -14, dy: 6, anchor: 'end', tier: 1 },
                 { dx: 14, dy: -12, anchor: 'start', tier: 2 }
+              ]
+            : stName === 'Noida Sector-52'
+            ? [
+                { dx: -16, dy: -16, anchor: 'end', tier: 1 },
+                { dx: 0, dy: -22, anchor: 'middle', tier: 2 }
+              ]
+            : stName === 'Noida Sector-51'
+            ? [
+                { dx: 18, dy: 5, anchor: 'start', tier: 1 },
+                { dx: 18, dy: 18, anchor: 'start', tier: 2 }
+              ]
+            : stName === 'Noida Sector-61'
+            ? [
+                { dx: -16, dy: -16, anchor: 'end', tier: 1 },
+                { dx: 0, dy: -24, anchor: 'middle', tier: 2 }
+              ]
+            : stName === 'Noida Sector-59'
+            ? [
+                { dx: -16, dy: -12, anchor: 'end', tier: 1 },
+                { dx: 16, dy: -12, anchor: 'start', tier: 2 }
+              ]
+            : stName === 'Noida Sector-62'
+            ? [
+                { dx: -16, dy: -12, anchor: 'end', tier: 1 },
+                { dx: 16, dy: -12, anchor: 'start', tier: 2 }
+              ]
+            : stName === 'Noida Sector-70'
+            ? [
+                { dx: 0, dy: 24, anchor: 'middle', tier: 1 },
+                { dx: 10, dy: 28, anchor: 'start', tier: 2 }
+              ]
+            : stName === 'Noida Sector-122'
+            ? [
+                { dx: 0, dy: 24, anchor: 'middle', tier: 1 },
+                { dx: 12, dy: 28, anchor: 'start', tier: 2 }
+              ]
+            : stName === 'Noida Sector-123'
+            ? [
+                { dx: 0, dy: 24, anchor: 'middle', tier: 1 },
+                { dx: 0, dy: -22, anchor: 'middle', tier: 2 }
               ]
             : isRrtsStop
             ? [
@@ -1970,15 +2087,28 @@
       if (!meta && !customStations) return;
 
       let stList = customStations || (lineId === 'rrts' ? CORRIDOR_STATIONS.rrts_main_line : CORRIDOR_STATIONS[lineId]) || [];
+      let simTitle = customTitle || meta.name;
       if (lineId === 'magenta' && !customStations) {
-        stList = CORRIDOR_STATIONS.magenta;
+        if (networkLayerMode === 'operational') {
+          stList = CORRIDOR_STATIONS.magenta;
+        } else {
+          stList = CORRIDOR_STATIONS.up_magenta_full_service;
+          simTitle = 'Line 8 - Magenta Line (Botanical Garden ↔ Inderlok)';
+        }
+      } else if (lineId === 'aqua' && !customStations) {
+        if (networkLayerMode === 'operational') {
+          stList = CORRIDOR_STATIONS.aqua;
+        } else {
+          stList = CORRIDOR_STATIONS.up_aqua_full_service;
+          simTitle = 'Aqua Line (Knowledge Park-V ↔ Boraki MMTH)';
+        }
       }
       if (stList.length < 2) return;
 
       simState.active = true;
       simState.playing = true;
       simState.lineId = lineId;
-      simState.title = customTitle || meta.name;
+      simState.title = simTitle;
       simState.color = customColor || meta.color;
       simState.stations = stList;
       simState.direction = 1;
@@ -2152,18 +2282,56 @@
 
       const totalSegs = n - 1;
       const exactPos = simState.progress * totalSegs;
-      const cornerRadius = simState.lineId === 'meerut' ? 58 : 56;
-      const curveData = buildArticulatedCurveSamples(pts, cornerRadius);
-      const centerArcDist = Math.min(1, Math.max(0, simState.progress)) * curveData.totalDist;
+      let simPts = pts;
+      const sampleSvgCircularArc = (a, b, r, sweepFlag, steps, includeStart, outArr) => {
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const dist = Math.hypot(dx, dy);
+        const radius = Math.max(r, dist * 0.5);
+        const mx = (a.x + b.x) * 0.5;
+        const my = (a.y + b.y) * 0.5;
+        const h = Math.sqrt(Math.max(0, radius * radius - (dist * 0.5) * (dist * 0.5)));
+        const ux = -dy / dist;
+        const uy = dx / dist;
+        const sign = sweepFlag === 1 ? 1 : -1;
+        const cx = mx + sign * h * ux;
+        const cy = my + sign * h * uy;
+        const startAng = Math.atan2(a.y - cy, a.x - cx);
+        let endAng = Math.atan2(b.y - cy, b.x - cx);
+        if (sweepFlag === 1 && endAng <= startAng) endAng += Math.PI * 2;
+        if (sweepFlag === 0 && endAng >= startAng) endAng -= Math.PI * 2;
+        for (let i = includeStart ? 0 : 1; i <= steps; i++) {
+          const ang = startAng + ((endAng - startAng) * i) / steps;
+          outArr.push({ x: cx + radius * Math.cos(ang), y: cy + radius * Math.sin(ang) });
+        }
+      };
+
+      if (simState.lineId === 'up_aqua_kp5' && pts.length >= 3) {
+        const arcSamples = [];
+        sampleSvgCircularArc(pts[0], pts[1], 175, 1, 16, true, arcSamples);
+        sampleSvgCircularArc(pts[1], pts[2], 165, 1, 16, false, arcSamples);
+        simPts = [...arcSamples, ...pts.slice(3)];
+      } else if (simState.lineId === 'aqua' && simState.stations[0] === 'Knowledge Park-V' && pts.length >= 12) {
+        // Unified Aqua service (Knowledge Park-V -> Noida Sector-70 -> Noida Sector-61 -> Noida Sector-51 -> Depot -> Boraki MMTH)
+        const p70 = pts[9];
+        const p61 = pts[10];
+        const p51 = pts[11];
+        const arcSamples = [];
+        sampleSvgCircularArc(p70, p61, 165, 0, 16, false, arcSamples);
+        sampleSvgCircularArc(p61, p51, 175, 0, 16, false, arcSamples);
+        simPts = [...pts.slice(0, 10), ...arcSamples, ...pts.slice(12)];
+      }
+      const curve = buildArticulatedCurveSamples(simPts, simState.lineId === 'meerut' ? 28 : 22);
+      const centerDist = Math.min(1, Math.max(0, simState.progress)) * curve.totalDist;
       const dirSign = simState.direction === 1 ? 1 : -1;
 
-      const centerSample = queryPointAtArcDistance(curveData, centerArcDist);
+      const centerSample = queryPointAtArcDistance(curve, centerDist);
       const x = centerSample.x;
       const y = centerSample.y;
 
       const marker = document.getElementById('live-train-marker');
       if (marker) {
-        marker.removeAttribute('transform');
+        marker.setAttribute('transform', 'translate(0, 0)');
       }
 
       const halo = document.getElementById('train-halo-circle');
@@ -2172,27 +2340,33 @@
         halo.setAttribute('cy', y.toFixed(1));
       }
 
-      // Position each individual coach & gangway independently along the curved track arc
-      // so the 4-coach metro bends smoothly around turns instead of pivoting like a rigid straight stick
-      const coachParts = [
-        { id: 'metro-coach-1', localCenter: 39.5 },
-        { id: 'metro-bellow-1', localCenter: 25.5 },
-        { id: 'metro-coach-2', localCenter: 11.5 },
-        { id: 'metro-bellow-2', localCenter: -2.5 },
-        { id: 'metro-coach-3', localCenter: -16.5 },
-        { id: 'metro-bellow-3', localCenter: -30.5 },
-        { id: 'metro-coach-4', localCenter: -44.0 }
+      // Articulate each coach & gangway bellows independently along the curved track arc
+      const trainParts = [
+        { id: 'metro-coach-1', localCenter: 39.5, halfSpan: 11.5 },
+        { id: 'metro-bellow-1', localCenter: 25.5, halfSpan: 1.5 },
+        { id: 'metro-coach-2', localCenter: 11.5, halfSpan: 11.5 },
+        { id: 'metro-bellow-2', localCenter: -2.5, halfSpan: 1.5 },
+        { id: 'metro-coach-3', localCenter: -16.5, halfSpan: 11.5 },
+        { id: 'metro-bellow-3', localCenter: -30.5, halfSpan: 1.5 },
+        { id: 'metro-coach-4', localCenter: -44.0, halfSpan: 11.0 }
       ];
 
-      coachParts.forEach(part => {
+      trainParts.forEach(part => {
         const el = document.getElementById(part.id);
         if (!el) return;
-        const partArcDist = centerArcDist + dirSign * part.localCenter;
-        const s = queryPointAtArcDistance(curveData, partArcDist);
-        const partAngle = dirSign === 1 ? s.angleDeg : s.angleDeg + 180;
+        const frontArc = centerDist + dirSign * (part.localCenter + part.halfSpan);
+        const rearArc = centerDist + dirSign * (part.localCenter - part.halfSpan);
+        const pFront = queryPointAtArcDistance(curve, frontArc);
+        const pRear = queryPointAtArcDistance(curve, rearArc);
+        const midX = (pFront.x + pRear.x) * 0.5;
+        const midY = (pFront.y + pRear.y) * 0.5;
+        const chordDeg = Math.hypot(pFront.x - pRear.x, pFront.y - pRear.y) > 0.2
+          ? (Math.atan2(pFront.y - pRear.y, pFront.x - pRear.x) * 180) / Math.PI
+          : (dirSign === 1 ? pFront.angleDeg : pFront.angleDeg + 180);
+
         el.setAttribute(
           'transform',
-          `translate(${s.x.toFixed(1)}, ${s.y.toFixed(1)}) rotate(${partAngle.toFixed(1)}) translate(${-part.localCenter}, 0)`
+          `translate(${midX.toFixed(1)}, ${midY.toFixed(1)}) rotate(${chordDeg.toFixed(1)}) translate(${-part.localCenter}, 0)`
         );
       });
 
@@ -2201,8 +2375,8 @@
       const brakeFx = document.getElementById('metro-brake-fx');
       if (doorsFx) {
         doorsFx.classList.toggle('hidden', !doorsOpen);
-        const leadAngle = dirSign === 1 ? centerSample.angleDeg : centerSample.angleDeg + 180;
-        doorsFx.setAttribute('transform', `translate(${x.toFixed(1)}, ${y.toFixed(1)}) rotate(${leadAngle.toFixed(1)})`);
+        const doorAngle = dirSign === 1 ? centerSample.angleDeg : centerSample.angleDeg + 180;
+        doorsFx.setAttribute('transform', `translate(${x.toFixed(1)}, ${y.toFixed(1)}) rotate(${doorAngle.toFixed(1)})`);
       }
       if (brakeFx) brakeFx.classList.toggle('hidden', !doorsOpen);
 
@@ -2257,11 +2431,12 @@
       };
 
       Object.keys(CORRIDOR_STATIONS).forEach(rawLid => {
-        if (rawLid === 'rrts') return; // Handled via rrts_main_line & rrts_duhai_spur
+        if (rawLid === 'rrts' || rawLid === 'up_magenta_full_service' || rawLid === 'up_aqua_full_service') return; // Handled via individual segments
         const lid = getCanonicalLineId(rawLid);
         const meta = LINE_META[lid];
         if (!meta) return;
-        if (!includeUpcoming && meta.status === 'upcoming') return;
+        const isUpcomingSegment = UPCOMING_MAGENTA_SEGMENTS.has(rawLid) || UPCOMING_AQUA_SEGMENTS.has(rawLid) || meta.status === 'upcoming';
+        if (!includeUpcoming && isUpcomingSegment) return;
 
         const list = CORRIDOR_STATIONS[rawLid];
         const kmHop = CORRIDOR_KM_PER_HOP[lid] || 1.3;
@@ -2410,7 +2585,7 @@
           standardFare += baseOrange;
           smartCardFare += Math.round(baseOrange * 0.9);
           totalMinutes += Math.max(4, Math.round((leg.km / 75) * 60 + (leg.stops.length - 1) * 0.5));
-        } else if (leg.lineId === 'aqua') {
+        } else if (leg.lineId === 'aqua' || leg.lineId === 'up_aqua_ext') {
           const hops = leg.stops.length - 1;
           const aquaFare = hops <= 1 ? 10 : hops <= 2 ? 15 : hops <= 5 ? 20 : hops <= 9 ? 30 : hops <= 14 ? 40 : 50;
           standardFare += aquaFare;
@@ -2606,7 +2781,31 @@
       }
 
       if (upGrid) {
-        upGrid.innerHTML = upKeys.map(lid => {
+        const magentaExtCard = `
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-2.5 flex flex-col justify-between">
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between gap-2">
+                <span class="px-2.5 py-0.5 rounded-md text-xs font-extrabold" style="background:${LINE_META.magenta.color};color:${LINE_META.magenta.textColor}">Line 8 - Magenta Line (Unified Botanical Garden ↔ Inderlok)</span>
+                <span class="text-xs font-extrabold text-slate-600">39.818 km Ext. • 64 Total Stns</span>
+              </div>
+              <p class="text-xs text-slate-600 font-medium">Single Unified Line 8 Service: Starts at <strong>Botanical Garden</strong> and terminates at <strong>Inderlok</strong> via Hauz Khas, Janakpuri West, Peeragarhi, Majlis Park, Central Secretariat, India Gate, Indraprastha &amp; New Delhi</p>
+            </div>
+            <button onclick="switchTab('map'); setNetworkLayerMode('upcoming'); filterMapLine('magenta');" class="w-full py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition">Simulate Botanical Garden → Inderlok on Map</button>
+          </div>
+        `;
+        const aquaUnifiedCard = `
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-2.5 flex flex-col justify-between">
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between gap-2">
+                <span class="px-2.5 py-0.5 rounded-md text-xs font-extrabold" style="background:${LINE_META.aqua.color};color:${LINE_META.aqua.textColor}">Aqua Line (Unified Knowledge Park-V ↔ Boraki MMTH)</span>
+                <span class="text-xs font-extrabold text-slate-600">20.035 km Ext. • 34 Total Stns</span>
+              </div>
+              <p class="text-xs text-slate-600 font-medium">Single Unified Aqua Line Service: Starts at <strong>Knowledge Park-V</strong> and terminates at <strong>Boraki MMTH</strong> via Greater Noida West, Noida Sector-70, Noida Sector-61, Noida Sector-51, Noida Sector-142, Pari Chowk, Depot Station &amp; Junpat</p>
+            </div>
+            <button onclick="switchTab('map'); setNetworkLayerMode('upcoming'); filterMapLine('aqua');" class="w-full py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition">Simulate Knowledge Park-V → Boraki MMTH on Map</button>
+          </div>
+        `;
+        upGrid.innerHTML = magentaExtCard + aquaUnifiedCard + upKeys.map(lid => {
           const m = LINE_META[lid];
           return `
             <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-2.5 flex flex-col justify-between">
