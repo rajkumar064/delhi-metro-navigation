@@ -48,6 +48,16 @@
     .station-node:hover {
       stroke-width: 4px;
     }
+    #dmrc-svg {
+      touch-action: none;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
     @keyframes pulseRing {
       0% { transform: scale(0.95); opacity: 0.85; }
       70% { transform: scale(1.65); opacity: 0; }
@@ -64,143 +74,143 @@
 
   <!-- Top Header -->
   <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40 shadow-md">
-    <div class="max-w-[1600px] mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-red-600 flex items-center justify-center shadow-inner shrink-0">
-          <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+    <div class="max-w-[1600px] mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2.5">
+      <div class="flex items-center gap-2.5 sm:gap-3">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-red-600 flex items-center justify-center shadow-inner shrink-0">
+          <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
             <circle cx="12" cy="12" r="9"></circle>
             <line x1="4" y1="9" x2="20" y2="9"></line>
             <line x1="15" y1="9" x2="9" y2="15"></line>
             <line x1="4" y1="15" x2="20" y2="15"></line>
           </svg>
         </div>
-        <div>
+        <div class="min-w-0">
           <div class="flex items-center gap-2 flex-wrap">
-            <h1 class="text-base sm:text-lg font-extrabold tracking-tight">DMRC Delhi-NCR Metro Network</h1>
-            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">As on August 2026</span>
+            <h1 class="text-sm sm:text-lg font-extrabold tracking-tight truncate">DMRC Delhi-NCR Metro Network</h1>
+            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 shrink-0">As on August 2026</span>
           </div>
-          <p class="text-xs text-slate-400">519.508 km Operational • 338 Stations • DMRC, NMRC, Rapid Metro &amp; NCRTC Namo Bharat</p>
+          <p class="text-[11px] sm:text-xs text-slate-400 truncate">519.508 km Operational • 338 Stations • DMRC, NMRC, Rapid Metro &amp; NCRTC Namo Bharat</p>
         </div>
       </div>
 
-      <!-- Navigation Tabs -->
-          <nav class="flex flex-wrap items-center gap-1.5 bg-slate-800/90 p-1 rounded-xl border border-slate-700">
-        <button id="tab-btn-map" onclick="switchTab('map')" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-red-600 text-white shadow transition">Interactive Map &amp; Sim</button>
-        <button id="tab-btn-upcoming" onclick="switchTab('upcoming')" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white transition">Upcoming Ph-IV/VA, NMRC &amp; GMRL (7)</button>
-        <button id="tab-btn-planner" onclick="switchTab('planner')" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white transition">Route &amp; Official Fare</button>
-        <button id="tab-btn-stats" onclick="switchTab('stats')" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white transition">Network Stats</button>
-        <button id="tab-btn-directory" onclick="switchTab('directory')" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white transition">Station Directory</button>
+      <!-- Navigation Tabs (Touch-scrollable on mobile/tablet) -->
+      <nav class="flex items-center gap-1.5 bg-slate-800/90 p-1 rounded-xl border border-slate-700 overflow-x-auto no-scrollbar max-w-full">
+        <button id="tab-btn-map" onclick="switchTab('map')" class="tab-btn px-3 py-2 sm:py-1.5 rounded-lg text-xs font-bold bg-red-600 text-white shadow transition whitespace-nowrap shrink-0">Interactive Map &amp; Sim</button>
+        <button id="tab-btn-upcoming" onclick="switchTab('upcoming')" class="tab-btn px-3 py-2 sm:py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white transition whitespace-nowrap shrink-0">Upcoming Ph-IV/VA, NMRC &amp; GMRL (7)</button>
+        <button id="tab-btn-planner" onclick="switchTab('planner')" class="tab-btn px-3 py-2 sm:py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white transition whitespace-nowrap shrink-0">Route &amp; Official Fare</button>
+        <button id="tab-btn-stats" onclick="switchTab('stats')" class="tab-btn px-3 py-2 sm:py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white transition whitespace-nowrap shrink-0">Network Stats</button>
+        <button id="tab-btn-directory" onclick="switchTab('directory')" class="tab-btn px-3 py-2 sm:py-1.5 rounded-lg text-xs font-bold text-slate-300 hover:text-white transition whitespace-nowrap shrink-0">Station Directory</button>
       </nav>
     </div>
   </header>
 
   <!-- Main Content -->
-  <main class="flex-1 max-w-[1600px] w-full mx-auto px-3 sm:px-4 py-4">
+  <main class="flex-1 max-w-[1600px] w-full mx-auto px-2.5 sm:px-4 py-3 sm:py-4">
 
     <!-- TAB 1: INTERACTIVE SCHEMATIC MAP & LIVE TRAIN SIMULATION -->
     <section id="tab-map" class="tab-panel space-y-3">
       <!-- Map Controls Toolbar -->
-      <div class="bg-white rounded-2xl border border-slate-200 p-3 shadow-sm space-y-2.5">
-        <div class="flex flex-wrap items-center justify-between gap-2">
+      <div class="bg-white rounded-2xl border border-slate-200 p-2.5 sm:p-3 shadow-sm space-y-2.5">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
           <!-- Network Layer Switcher -->
-          <div class="flex flex-wrap items-center gap-1.5">
-            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mr-1">Layer:</span>
-            <button id="layer-btn-operational" onclick="setNetworkLayerMode('operational')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-900 text-white transition">Operational (14)</button>
-            <button id="layer-btn-all" onclick="setNetworkLayerMode('all')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">All Networks (19)</button>
-            <button id="layer-btn-upcoming" onclick="setNetworkLayerMode('upcoming')" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">Upcoming Ph-IV/VA, NMRC &amp; GMRL (7)</button>
+          <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5 md:pb-0">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mr-0.5 shrink-0">Layer:</span>
+            <button id="layer-btn-operational" onclick="setNetworkLayerMode('operational')" class="px-2.5 py-1.5 sm:py-1 rounded-lg text-xs font-bold bg-slate-900 text-white transition whitespace-nowrap shrink-0">Operational (14)</button>
+            <button id="layer-btn-all" onclick="setNetworkLayerMode('all')" class="px-2.5 py-1.5 sm:py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition whitespace-nowrap shrink-0">All Networks (19)</button>
+            <button id="layer-btn-upcoming" onclick="setNetworkLayerMode('upcoming')" class="px-2.5 py-1.5 sm:py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition whitespace-nowrap shrink-0">Upcoming Ph-IV/VA, NMRC &amp; GMRL (7)</button>
           </div>
 
           <!-- Quick Station Jump & Tools -->
-          <div class="flex flex-wrap items-center gap-2">
-            <div class="relative">
-              <input id="map-station-search" type="text" list="all-stations-datalist" placeholder="Jump to station..." oninput="jumpToStationFromSearch(this.value)" class="pl-3 pr-7 py-1 text-xs rounded-lg border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500 w-44 sm:w-56" />
+          <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            <div class="relative flex-1 sm:flex-initial min-w-[160px]">
+              <input id="map-station-search" type="text" list="all-stations-datalist" placeholder="Jump to station..." oninput="jumpToStationFromSearch(this.value)" class="pl-3 pr-3 py-1.5 sm:py-1 text-xs rounded-lg border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500 w-full sm:w-52 md:w-56" />
             </div>
-            <button id="btn-toggle-labels" onclick="toggleShowAllLabels()" class="px-2.5 py-1 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition">Labels: Auto-Smart</button>
-            <button id="btn-toggle-sidebar" onclick="toggleMapSidebar()" class="px-2.5 py-1 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition">Hide Sidebar</button>
+            <button id="btn-toggle-labels" onclick="toggleShowAllLabels()" class="px-2.5 py-1.5 sm:py-1 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition whitespace-nowrap">Labels: Auto-Smart</button>
+            <button id="btn-toggle-sidebar" onclick="toggleMapSidebar()" class="px-2.5 py-1.5 sm:py-1 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition whitespace-nowrap">Hide Sidebar</button>
           </div>
         </div>
 
-        <!-- Line & Section Filter Pills -->
-        <div id="line-filter-pills" class="flex flex-wrap items-center gap-1.5 pt-1 border-t border-slate-100"></div>
+        <!-- Line & Section Filter Pills (Horizontal scroll on mobile, wrapped on desktop) -->
+        <div id="line-filter-pills" class="flex items-center sm:flex-wrap gap-1.5 pt-1.5 border-t border-slate-100 overflow-x-auto no-scrollbar"></div>
       </div>
 
       <!-- Map + Inspector Grid -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 items-start">
         <!-- SVG Viewport Column -->
-        <div id="map-canvas-col" class="lg:col-span-9 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden relative select-none" style="height: 74vh; min-height: 540px;">
+        <div id="map-canvas-col" class="lg:col-span-9 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden relative select-none h-[64vh] sm:h-[70vh] lg:h-[74vh] min-h-[420px] sm:min-h-[540px]">
           <!-- Floating Show Sidebar Button (Visible when sidebar hidden) -->
-          <button id="btn-show-sidebar-floating" onclick="toggleMapSidebar()" class="hidden absolute top-3 right-3 z-20 px-3 py-1.5 rounded-xl bg-slate-900/90 text-white text-xs font-bold shadow-lg hover:bg-slate-800 transition">
-            Show Sidebar
+          <button id="btn-show-sidebar-floating" onclick="toggleMapSidebar()" class="hidden absolute top-3 right-3 z-20 px-3 py-2 rounded-xl bg-slate-900/90 text-white text-xs font-bold shadow-lg hover:bg-slate-800 transition">
+            Show Inspector
           </button>
 
-          <!-- Zoom & Reset Controls -->
-          <div class="absolute bottom-4 right-4 z-20 flex flex-col gap-1.5 bg-white/95 backdrop-blur p-1.5 rounded-xl border border-slate-200 shadow-lg">
-            <button onclick="zoomMap(1.25)" title="Zoom In" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 font-bold text-slate-800 flex items-center justify-center">+</button>
-            <button onclick="zoomMap(0.8)" title="Zoom Out" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 font-bold text-slate-800 flex items-center justify-center">−</button>
-            <button onclick="resetMapView()" title="Reset View" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-[10px] font-extrabold text-slate-700 flex items-center justify-center">FIT</button>
+          <!-- Zoom & Reset Controls (Larger touch targets on mobile/tablet) -->
+          <div class="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-20 flex flex-col gap-1.5 bg-white/95 backdrop-blur p-1.5 rounded-xl border border-slate-200 shadow-lg">
+            <button onclick="zoomMap(1.25)" title="Zoom In" class="w-10 h-10 sm:w-8 sm:h-8 rounded-lg bg-slate-100 hover:bg-slate-200 active:bg-slate-300 font-bold text-base sm:text-sm text-slate-800 flex items-center justify-center">+</button>
+            <button onclick="zoomMap(0.8)" title="Zoom Out" class="w-10 h-10 sm:w-8 sm:h-8 rounded-lg bg-slate-100 hover:bg-slate-200 active:bg-slate-300 font-bold text-base sm:text-sm text-slate-800 flex items-center justify-center">−</button>
+            <button onclick="resetMapView()" title="Reset View" class="w-10 h-10 sm:w-8 sm:h-8 rounded-lg bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-[10px] font-extrabold text-slate-700 flex items-center justify-center">FIT</button>
           </div>
 
           <!-- Legend Overlay -->
-          <div class="absolute bottom-4 left-4 z-20 bg-white/95 backdrop-blur px-3 py-2 rounded-xl border border-slate-200 shadow-md text-[11px] space-y-1 pointer-events-none hidden sm:block">
-            <div class="font-extrabold text-slate-800 uppercase tracking-wider text-[10px]">Schematic Key</div>
-            <div class="flex items-center gap-2 text-slate-600"><span class="w-3.5 h-3.5 rounded-full border-2 border-slate-900 bg-white inline-block"></span> Interchange Hub</div>
-            <div class="flex items-center gap-2 text-slate-600"><span class="w-3 h-3 rounded-full bg-red-600 inline-block"></span> Terminal / Regular Station</div>
-            <div class="flex items-center gap-2 text-slate-600"><span class="w-5 border-t-2 border-dashed border-sky-600 inline-block"></span> Skywalk (Noida Sec 51–52)</div>
+          <div class="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 z-20 bg-white/95 backdrop-blur px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl border border-slate-200 shadow-md text-[10px] sm:text-[11px] space-y-1 pointer-events-none">
+            <div class="font-extrabold text-slate-800 uppercase tracking-wider text-[9px] sm:text-[10px]">Schematic Key</div>
+            <div class="flex items-center gap-1.5 sm:gap-2 text-slate-600"><span class="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full border-2 border-slate-900 bg-white inline-block"></span> Interchange Hub</div>
+            <div class="flex items-center gap-1.5 sm:gap-2 text-slate-600"><span class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-600 inline-block"></span> Station</div>
+            <div class="hidden sm:flex items-center gap-2 text-slate-600"><span class="w-5 border-t-2 border-dashed border-sky-600 inline-block"></span> Skywalk (Noida Sec 51–52)</div>
           </div>
 
-          <!-- Live Train Simulation HUD -->
-          <div id="train-sim-hud" class="hidden absolute top-3 left-3 z-20 w-[calc(100%-1.5rem)] sm:w-96 bg-slate-900/95 backdrop-blur text-white rounded-2xl p-3.5 shadow-2xl border border-slate-700 space-y-2.5">
+          <!-- Live Train Simulation HUD (Compact adaptive overlay on mobile, full card on tablet/desktop) -->
+          <div id="train-sim-hud" class="hidden absolute top-2.5 left-2.5 right-2.5 sm:right-auto sm:top-3 sm:left-3 z-20 sm:w-96 bg-slate-900/95 backdrop-blur text-white rounded-2xl p-2.5 sm:p-3.5 shadow-2xl border border-slate-700 space-y-2 sm:space-y-2.5">
             <div class="flex items-center justify-between gap-2">
               <div class="flex items-center gap-2 min-w-0">
                 <span id="sim-line-dot" class="w-3 h-3 rounded-full shrink-0 bg-red-500"></span>
                 <span id="sim-line-title" class="text-xs font-extrabold truncate">Line Simulation</span>
               </div>
-              <button onclick="stopTrainSimulation()" class="text-slate-400 hover:text-white text-xs font-bold px-1.5 py-0.5 rounded bg-slate-800">✕</button>
+              <button onclick="stopTrainSimulation()" class="text-slate-300 hover:text-white text-xs font-bold px-2 py-1 rounded-lg bg-slate-800 shrink-0">✕</button>
             </div>
 
             <!-- Live Status & Door State -->
-            <div class="bg-slate-800/90 rounded-xl p-2.5 border border-slate-700/80 space-y-1.5">
+            <div class="bg-slate-800/90 rounded-xl p-2 sm:p-2.5 border border-slate-700/80 space-y-1 sm:space-y-1.5">
               <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider">
                 <span id="sim-status-badge" class="text-emerald-400">● IN TRANSIT</span>
                 <span id="sim-stop-counter" class="text-slate-400">Stop 1 / 10</span>
               </div>
-              <div id="sim-current-station" class="text-sm font-extrabold text-white truncate">Starting Station</div>
+              <div id="sim-current-station" class="text-xs sm:text-sm font-extrabold text-white truncate">Starting Station</div>
               <div id="sim-next-station" class="text-[11px] text-slate-300 truncate">Next: —</div>
               <!-- Door Indicator Bar -->
-              <div class="flex items-center gap-2 pt-1">
+              <div class="flex items-center gap-2 pt-0.5 sm:pt-1">
                 <span class="text-[10px] text-slate-400 font-semibold">DOORS:</span>
-                <div id="sim-door-left" class="h-2 flex-1 rounded bg-slate-600 transition-all"></div>
-                <div id="sim-door-right" class="h-2 flex-1 rounded bg-slate-600 transition-all"></div>
+                <div id="sim-door-left" class="h-1.5 sm:h-2 flex-1 rounded bg-slate-600 transition-all"></div>
+                <div id="sim-door-right" class="h-1.5 sm:h-2 flex-1 rounded bg-slate-600 transition-all"></div>
                 <span id="sim-door-text" class="text-[10px] font-bold text-slate-400">CLOSED</span>
               </div>
             </div>
 
             <!-- Timeline Scrubber -->
             <div class="space-y-1">
-              <input id="sim-progress-slider" type="range" min="0" max="1000" value="0" oninput="scrubTrainProgress(this.value)" class="w-full accent-red-500 h-1.5 bg-slate-700 rounded-lg cursor-pointer" />
+              <input id="sim-progress-slider" type="range" min="0" max="1000" value="0" oninput="scrubTrainProgress(this.value)" class="w-full accent-red-500 h-2 sm:h-1.5 bg-slate-700 rounded-lg cursor-pointer" />
             </div>
 
             <!-- Controls & Speed (Including 0.5x) -->
             <div class="flex flex-wrap items-center justify-between gap-1.5">
               <div class="flex items-center gap-1">
-                <button id="sim-play-btn" onclick="toggleTrainPlay()" class="px-2.5 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-xs font-bold">Pause</button>
-                <button onclick="reverseTrainDirection()" title="Reverse Direction" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold">⇄ Rev</button>
-                <button onclick="restartTrainSimulation()" title="Restart" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold">↺</button>
+                <button id="sim-play-btn" onclick="toggleTrainPlay()" class="px-2.5 py-1.5 sm:py-1 rounded-lg bg-red-600 hover:bg-red-500 text-xs font-bold">Pause</button>
+                <button onclick="reverseTrainDirection()" title="Reverse Direction" class="px-2 py-1.5 sm:py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold">⇄ Rev</button>
+                <button onclick="restartTrainSimulation()" title="Restart" class="px-2 py-1.5 sm:py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-bold">↺</button>
               </div>
               <div class="flex items-center gap-1 bg-slate-800 p-0.5 rounded-lg">
-                <button onclick="setTrainSpeed(0.5)" id="spd-0.5" class="spd-btn px-1.5 py-0.5 rounded text-[10px] font-bold text-slate-300 hover:text-white">0.5x</button>
-                <button onclick="setTrainSpeed(1)" id="spd-1" class="spd-btn px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-600 text-white">1x</button>
-                <button onclick="setTrainSpeed(2)" id="spd-2" class="spd-btn px-1.5 py-0.5 rounded text-[10px] font-bold text-slate-300 hover:text-white">2x</button>
-                <button onclick="setTrainSpeed(4)" id="spd-4" class="spd-btn px-1.5 py-0.5 rounded text-[10px] font-bold text-slate-300 hover:text-white">4x</button>
+                <button onclick="setTrainSpeed(0.5)" id="spd-0.5" class="spd-btn px-2 py-1 sm:px-1.5 sm:py-0.5 rounded text-[10px] font-bold text-slate-300 hover:text-white">0.5x</button>
+                <button onclick="setTrainSpeed(1)" id="spd-1" class="spd-btn px-2 py-1 sm:px-1.5 sm:py-0.5 rounded text-[10px] font-bold bg-red-600 text-white">1x</button>
+                <button onclick="setTrainSpeed(2)" id="spd-2" class="spd-btn px-2 py-1 sm:px-1.5 sm:py-0.5 rounded text-[10px] font-bold text-slate-300 hover:text-white">2x</button>
+                <button onclick="setTrainSpeed(4)" id="spd-4" class="spd-btn px-2 py-1 sm:px-1.5 sm:py-0.5 rounded text-[10px] font-bold text-slate-300 hover:text-white">4x</button>
               </div>
             </div>
 
             <!-- Auto-Reverse & Follow Train Options -->
             <div class="flex items-center justify-between gap-2 pt-1.5 border-t border-slate-700/80">
-              <button id="sim-autoreverse-btn" onclick="toggleAutoReverse()" class="flex-1 py-1 px-2 rounded-lg text-[10px] font-bold bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-600/30 transition">
+              <button id="sim-autoreverse-btn" onclick="toggleAutoReverse()" class="flex-1 py-1.5 sm:py-1 px-2 rounded-lg text-[10px] font-bold bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-600/30 transition">
                 ↻ Auto-Reverse: ON
               </button>
-              <button id="sim-follow-btn" onclick="toggleFollowTrain()" class="flex-1 py-1 px-2 rounded-lg text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-600 hover:bg-slate-700 transition">
+              <button id="sim-follow-btn" onclick="toggleFollowTrain()" class="flex-1 py-1.5 sm:py-1 px-2 rounded-lg text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-600 hover:bg-slate-700 transition">
                 ◎ Follow Metro: OFF
               </button>
             </div>
@@ -307,8 +317,8 @@
           </svg>
         </div>
 
-        <!-- Right Sidebar: Station Inspector & Corridor Quick List -->
-        <aside id="map-sidebar-col" class="lg:col-span-3 space-y-3">
+        <!-- Right Sidebar: Station Inspector & Corridor Quick List (2-column grid on tablet, stacked on mobile/desktop) -->
+        <aside id="map-sidebar-col" class="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-3">
           <!-- Station Inspector Card -->
           <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3">
             <div class="flex items-center justify-between border-b border-slate-100 pb-2">
@@ -316,12 +326,12 @@
               <button onclick="toggleMapSidebar()" class="text-[11px] font-bold text-slate-400 hover:text-slate-700">✕ Hide</button>
             </div>
             <div id="station-inspector-body" class="space-y-2.5">
-              <p class="text-xs text-slate-500 leading-relaxed">Click any station dot on the map to inspect line connections, interchange transfers, and plan a journey.</p>
+              <p class="text-xs text-slate-500 leading-relaxed">Tap or click any station dot on the map to inspect line connections, interchange transfers, and plan a journey.</p>
             </div>
           </div>
 
           <!-- Corridor Quick Launchers -->
-          <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-2.5 max-h-[44vh] overflow-y-auto custom-scrollbar">
+          <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-2.5 max-h-[38vh] lg:max-h-[44vh] overflow-y-auto custom-scrollbar">
             <div class="text-xs font-extrabold uppercase tracking-wider text-slate-500">Operational Corridors (14)</div>
             <div id="sidebar-corridor-list" class="space-y-1.5"></div>
           </div>
@@ -1202,6 +1212,19 @@
     let mapTransform = { x: 80, y: 30, scale: 0.38 };
     let isPanning = false;
     let panStart = { x: 0, y: 0 };
+    let activePinchDist = null;
+    let touchMoved = false;
+
+    function getDefaultMapTransform() {
+      const w = window.innerWidth || 1200;
+      if (w < 640) {
+        return { x: -45, y: 65, scale: 0.34 };
+      }
+      if (w < 1024) {
+        return { x: 30, y: 40, scale: 0.36 };
+      }
+      return { x: 80, y: 30, scale: 0.38 };
+    }
 
     function applyMapTransform() {
       const vp = document.getElementById('map-viewport-group');
@@ -1217,6 +1240,12 @@
       mapTransform.x = cx - (cx - mapTransform.x) * ratio;
       mapTransform.y = cy - (cy - mapTransform.y) * ratio;
       mapTransform.scale = newScale;
+      applyMapTransform();
+      renderSchematicMap();
+    }
+
+    function resetMapView() {
+      mapTransform = getDefaultMapTransform();
       applyMapTransform();
       renderSchematicMap();
     }
@@ -1345,7 +1374,7 @@
           displayLabel = 'Aqua Line (Knowledge Park-V ↔ Boraki MMTH)';
         }
         html += `
-          <button onclick="filterMapLine('${lid}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition flex items-center gap-1.5 ${active ? 'ring-2 ring-offset-1 ring-slate-900' : 'opacity-90 hover:opacity-100'}" style="background:${active ? m.color : '#ffffff'};color:${active ? m.textColor : '#1e293b'};border-color:${m.color}">
+          <button onclick="filterMapLine('${lid}')" class="px-2.5 py-1.5 sm:py-1 rounded-lg text-[11px] font-bold border transition flex items-center gap-1.5 whitespace-nowrap shrink-0 ${active ? 'ring-2 ring-offset-1 ring-slate-900' : 'opacity-90 hover:opacity-100'}" style="background:${active ? m.color : '#ffffff'};color:${active ? m.textColor : '#1e293b'};border-color:${m.color}">
             <span class="w-2 h-2 rounded-full shrink-0" style="background:${active ? m.textColor : m.color}"></span>
             <span>${displayLabel}</span>
           </button>
@@ -1357,7 +1386,7 @@
           if (sec.id === 'sec_deepali_majlis' && networkLayerMode !== 'operational') return;
           const active = currentLineFilter === sec.id;
           html += `
-            <button onclick="filterMapLine('${sec.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold border transition flex items-center gap-1.5 ${active ? 'ring-2 ring-offset-1 ring-slate-900' : 'opacity-95 hover:opacity-100'}" style="background:${active ? sec.color : '#ffffff'};color:${active ? sec.textColor : '#1e293b'};border-color:${sec.color}">
+            <button onclick="filterMapLine('${sec.id}')" class="px-2.5 py-1.5 sm:py-1 rounded-lg text-[11px] font-bold border transition flex items-center gap-1.5 whitespace-nowrap shrink-0 ${active ? 'ring-2 ring-offset-1 ring-slate-900' : 'opacity-95 hover:opacity-100'}" style="background:${active ? sec.color : '#ffffff'};color:${active ? sec.textColor : '#1e293b'};border-color:${sec.color}">
               <span class="w-2 h-2 rounded-full shrink-0" style="background:${active ? sec.textColor : sec.color}"></span>
               <span>${sec.label}</span>
             </button>
@@ -1645,26 +1674,18 @@
           });
           stationsLayer.appendChild(circle);
 
-          // Draw paired sky-blue interchange dot on Meerut Metro track for shared RRTS+Meerut stations
-          if (rawLid === 'rrts_main_line' && linesForStation.includes('meerut')) {
-            const mIdx = CORRIDOR_STATIONS.meerut.indexOf(stName);
-            const mx = mIdx <= 7 ? baseCoord.x + 9 : baseCoord.x + 12;
-            const my = mIdx <= 7 ? baseCoord.y + 9 : baseCoord.y;
-            const mDot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            mDot.setAttribute('cx', mx);
-            mDot.setAttribute('cy', my);
-            mDot.setAttribute('r', '4.2');
-            mDot.setAttribute('fill', LINE_META.meerut.color);
-            mDot.setAttribute('stroke', '#0f172a');
-            mDot.setAttribute('stroke-width', '1.8');
-            mDot.setAttribute('opacity', isStationActiveInFilter ? '1' : '0.22');
-            mDot.setAttribute('class', 'station-node');
-            mDot.addEventListener('click', (e) => {
-              e.stopPropagation();
-              inspectStation(stName);
-            });
-            stationsLayer.appendChild(mDot);
-          }
+          // Invisible enlarged touch hit-area for effortless mobile & tablet tapping
+          const hitCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          hitCircle.setAttribute('cx', coord.x);
+          hitCircle.setAttribute('cy', coord.y);
+          hitCircle.setAttribute('r', Math.max(14, radius + 7));
+          hitCircle.setAttribute('fill', 'transparent');
+          hitCircle.setAttribute('class', 'station-node');
+          hitCircle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            inspectStation(stName);
+          });
+          stationsLayer.appendChild(hitCircle);
         });
       });
 
@@ -1994,6 +2015,63 @@
 
       window.addEventListener('mouseup', () => {
         isPanning = false;
+      });
+
+      // Touch Pan & Two-Finger Pinch-to-Zoom for Mobile & Tablet
+      svg.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+          isPanning = true;
+          touchMoved = false;
+          activePinchDist = null;
+          panStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        } else if (e.touches.length === 2) {
+          isPanning = false;
+          activePinchDist = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+        }
+      }, { passive: false });
+
+      svg.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 1 && isPanning) {
+          const dxPx = e.touches[0].clientX - panStart.x;
+          const dyPx = e.touches[0].clientY - panStart.y;
+          if (Math.hypot(dxPx, dyPx) > 3) touchMoved = true;
+          if (!touchMoved) return;
+          e.preventDefault();
+          const rect = svg.getBoundingClientRect();
+          const dx = (dxPx / rect.width) * 1200;
+          const dy = (dyPx / rect.height) * 720;
+          panStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+          mapTransform.x += dx;
+          mapTransform.y += dy;
+          applyMapTransform();
+        } else if (e.touches.length === 2 && activePinchDist) {
+          e.preventDefault();
+          const newDist = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+          const factor = newDist / activePinchDist;
+          activePinchDist = newDist;
+          const rect = svg.getBoundingClientRect();
+          const midClientX = (e.touches[0].clientX + e.touches[1].clientX) * 0.5;
+          const midClientY = (e.touches[0].clientY + e.touches[1].clientY) * 0.5;
+          const mx = ((midClientX - rect.left) / rect.width) * 1200;
+          const my = ((midClientY - rect.top) / rect.height) * 720;
+          const newScale = Math.min(2.6, Math.max(0.22, mapTransform.scale * factor));
+          const ratio = newScale / mapTransform.scale;
+          mapTransform.x = mx - (mx - mapTransform.x) * ratio;
+          mapTransform.y = my - (my - mapTransform.y) * ratio;
+          mapTransform.scale = newScale;
+          applyMapTransform();
+        }
+      }, { passive: false });
+
+      svg.addEventListener('touchend', () => {
+        isPanning = false;
+        activePinchDist = null;
       });
     }
 
@@ -2870,6 +2948,7 @@
 
     // Initialize Application
     window.addEventListener('DOMContentLoaded', () => {
+      mapTransform = getDefaultMapTransform();
       buildSchematicCoordinates();
       renderLineFilterPills();
       applyMapTransform();
