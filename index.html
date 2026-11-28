@@ -113,6 +113,27 @@
       *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
     }
   </style>
+<style>
+.metro-control{padding:.45rem .75rem;border-radius:.6rem;border:1px solid #cbd5e1;background:white;color:#1e293b;font-size:.76rem;font-weight:700}
+.metro-control:hover{background:#f1f5f9}.metro-control:focus-visible,#guide-position:focus-visible{outline:3px solid #38bdf8;outline-offset:2px}
+.metro-control:disabled{opacity:.4}.metro-control[aria-pressed=true]{background:#fef3c7;color:#78350f}
+.journey-guide{padding:1rem;border-radius:1rem;background:#17243a;color:white}.guide-top,.guide-actions{display:flex;align-items:center;justify-content:space-between;gap:.6rem}
+.guide-top{color:#bfdbfe;font-size:.75rem;font-weight:700}.guide-title{font-size:1.2rem;font-weight:800;margin:.6rem 0 .15rem}.guide-detail{color:#dbeafe;font-size:.82rem}
+#guide-position{width:100%;accent-color:#7dd3fc;margin:.75rem 0;cursor:pointer}.guide-actions .metro-control{border-color:#51627a;background:#25354d;color:white}
+</style>
+<style>
+.rail-scene{--train-width:clamp(230px,33vw,550px);position:relative;isolation:isolate;overflow:hidden;height:clamp(80px,8vw,120px);flex:none;background:#fff}
+.rail-wire{position:absolute;bottom:calc(14px + var(--train-width)*.112);width:100%;height:1.5px;background:#638bc6}
+.rail-masts{position:absolute;inset:12px 0 10px;background:repeating-linear-gradient(90deg,transparent 0 13px,#40515a 13px 17px,transparent 17px 100%);background-size:clamp(130px,18vw,300px) 100%}
+.rail-viaduct{position:absolute;inset:auto 0 0;height:14px;border-top:7px solid #263942;background:repeating-linear-gradient(90deg,transparent 0 56px,#344751 56px 64px,transparent 64px 228px)}
+.rail-motion{position:absolute;left:0;bottom:13px;width:calc(100% + var(--train-width));animation:rail-pass 19s linear -9s infinite;animation-play-state:paused;pointer-events:none}
+.rail-motion svg{display:block;width:var(--train-width);height:auto}
+@keyframes rail-pass{from{transform:translateX(calc(-1 * var(--train-width)))}to{transform:translateX(calc(100% - var(--train-width)))}}
+.rail-scene[data-running=true] .rail-motion{animation-play-state:running}
+.rail-toggle{position:absolute;right:12px;top:4px;width:44px;height:44px;display:grid;place-items:center;color:#fff;z-index:1}
+.rail-toggle span{display:grid;place-items:center;border-radius:50%;background:#4146a7;width:30px;height:30px;font-size:13px;box-shadow:0 0 0 3px white}
+.rail-toggle:focus-visible{outline:2px solid #4338ca;outline-offset:-2px;border-radius:50%}
+</style>
 </head>
 <body class="min-h-screen flex flex-col">
   <!-- Top Header -->
@@ -167,10 +188,15 @@
               <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.5" y2="16.5"></line></svg>
               <input id="map-station-search" type="search" autocomplete="off" enterkeyhint="search" placeholder="Jump to station…  ( / )" class="pl-8 pr-3 py-2 sm:py-1.5 text-sm sm:text-xs rounded-lg border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500 w-full sm:w-56 md:w-60" />
             </div>
+            <button class="metro-control" id="saved-toggle" aria-expanded="false" aria-controls="saved-drawer" onclick="toggleSavedDrawer()">☆ Saved (0)</button>
             <button id="btn-toggle-labels" onclick="toggleShowAllLabels()" class="px-2.5 py-2 sm:py-1.5 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition whitespace-nowrap">Labels: Smart</button>
             <button id="btn-toggle-sidebar" onclick="toggleMapSidebar()" class="hidden lg:inline-block px-2.5 py-1.5 rounded-lg text-xs font-bold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition whitespace-nowrap">Hide Sidebar</button>
           </div>
         </div>
+        <section hidden id="saved-drawer" aria-label="Saved stations" class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+          <h3 class="text-xs font-bold mb-1.5">Saved stations</h3>
+          <div id="saved-list" class="flex flex-wrap items-center gap-2"></div>
+        </section>
         <!-- Active route banner -->
         <div id="route-banner" class="hidden flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-red-50 border border-red-200 text-xs anim-fade">
           <div class="flex items-center gap-2 min-w-0">
@@ -388,7 +414,7 @@
       <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 class="text-base sm:text-lg font-extrabold text-slate-900">Upcoming DMRC Phase-IV, Phase-VA, NMRC &amp; Gurugram Metro (GMRL)</h2>
-          <p class="text-xs text-slate-500 mt-0.5">7 Unified Under-Construction / Approved Corridors &amp; Extensions (incl. Unified Line 8 Botanical Garden ↔ Inderlok &amp; Unified Aqua Line Knowledge Park-V ↔ Boraki MMTH) • 164.546 km Total</p>
+          <p class="text-xs text-slate-500 mt-0.5">Upcoming corridors and extensions, including NMRC’s three Aqua Line projects</p>
         </div>
         <button onclick="viewAllUpcomingOnMap()" class="px-4 py-2.5 sm:py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition shadow shrink-0">View All Upcoming Lines on Map</button>
       </div>
@@ -560,6 +586,28 @@
     </section>
   </main>
 
+  <section id="rail-scene" class="rail-scene" aria-label="Moving metro animation">
+    <div class="rail-wire"></div><div class="rail-masts"></div>
+    <div class="rail-motion" aria-hidden="true">
+      <svg viewBox="0 0 488 58" focusable="false">
+        <defs>
+          <linearGradient id="rail-metal" x2="0" y2="1" gradientUnits="objectBoundingBox"><stop stop-color="#fafafa"/><stop offset=".72" stop-color="#e8ebeb"/><stop offset="1" stop-color="#acb5b8"/></linearGradient>
+          <pattern id="rail-glass" width="26" height="16" patternUnits="userSpaceOnUse"><rect width="26" height="16" fill="#889da5"/><path d="M-2 16 10 0h8L6 16z" fill="#c9d6d9"/></pattern>
+          <g id="rail-window"><rect width="23" height="14" rx="2" fill="url(#rail-glass)" stroke="#61757d" stroke-width=".8"/></g>
+          <g id="rail-door"><rect width="23" height="29" rx="1" fill="#d8dfe0" stroke="#8d999e"/><use href="#rail-window" x="2" y="2" transform="scale(.84 1)"/><path d="M11.5 0v29" stroke="#7c898f"/></g>
+          <g id="rail-coach"><rect x="1" y="15" width="117" height="38" rx="4" fill="url(#rail-metal)" stroke="#859296"/><path d="M2 20h115" stroke="#0098a6" stroke-width="4"/><use href="#rail-door" x="6" y="23"/><use href="#rail-window" x="33" y="24"/><use href="#rail-window" x="61" y="24"/><use href="#rail-door" x="89" y="23"/></g>
+          <g id="rail-cab"><path d="M2 49Q9 31 19 20Q24 15 35 15h84v38H9Q2 53 2 49Z" fill="url(#rail-metal)" stroke="#859296"/><path d="M5 43q9-20 20-25h13L26 33z" fill="#243942"/><path d="M10 36q9-16 18-16h90" fill="none" stroke="#0098a6" stroke-width="4"/><use href="#rail-door" x="36" y="23"/><use href="#rail-window" x="63" y="24"/><use href="#rail-window" x="90" y="24"/><path d="M5 45h9" stroke="#fef5bc" stroke-width="2"/></g>
+        </defs>
+        <g fill="none" stroke="#536268" stroke-width="1.5"><path d="m96 15-12-9 8-3m-17 0h23m292 12 12-9-8-3m-6 0h23"/></g>
+        <path d="M13 51h461l-6 5H20z" fill="#414e54"/>
+        <use href="#rail-cab"/><use href="#rail-coach" x="123"/><use href="#rail-coach" x="245"/><use href="#rail-cab" transform="translate(488) scale(-1 1)"/>
+        <path d="M121 21v30m122-30v30m123-30v30" stroke="#48585c" stroke-width="4"/>
+      </svg>
+    </div>
+    <div class="rail-viaduct"></div>
+    <button id="rail-toggle" class="rail-toggle" type="button" aria-label="Play metro animation"><span aria-hidden="true">▶</span></button>
+  </section>
+
   <footer class="bg-white border-t border-slate-200 py-3 px-4 text-center text-[11px] text-slate-500">
     DMRC Helpline: <strong class="text-slate-800">155370</strong> • Delhi Metro Sarthi App • Schematic Map Not to Scale (August 2026 Network Edition)
   </footer>
@@ -622,7 +670,7 @@
       magenta: { id: 'magenta', name: 'Line 8 - Magenta Line', shortName: 'Magenta Line 8', operator: 'DMRC', color: '#C026D3', textColor: '#FFFFFF', lengthKm: 89.013, officialStations: 64, status: 'operational', terminals: 'Botanical Garden ↔ Inderlok (Unified Single Corridor Service)' },
       grey: { id: 'grey', name: 'Line 9 - Grey Line', shortName: 'Grey Line 9', operator: 'DMRC', color: '#64748B', textColor: '#FFFFFF', lengthKm: 5.491, officialStations: 4, status: 'operational', terminals: 'Dwarka ↔ Dhansa Bus Stand' },
       orange: { id: 'orange', name: 'Airport Express (Orange)', shortName: 'Airport Express', operator: 'DMRC', color: '#F97316', textColor: '#FFFFFF', lengthKm: 24.917, officialStations: 7, status: 'operational', terminals: 'New Delhi ↔ Yashobhoomi Dwarka Sec-25' },
-      aqua: { id: 'aqua', name: 'Aqua Line (NMRC)', shortName: 'Aqua Line', operator: 'NMRC', color: '#06B6D4', textColor: '#0F172A', lengthKm: 49.203, officialStations: 34, status: 'operational', terminals: 'Knowledge Park-V ↔ Noida Sec-70/61/51 ↔ Depot Station ↔ Boraki MMTH (Unified Service)' },
+      aqua: { id: 'aqua', name: 'Aqua Line (NMRC)', shortName: 'Aqua Line', operator: 'NMRC', color: '#06B6D4', textColor: '#0F172A', lengthKm: 49.203, officialStations: 34, status: 'operational', terminals: 'Knowledge Park-V ↔ Noida Sec-70/61/51 ↔ Depot Station ↔ Boraki Station (future schematic)' },
       rapid: { id: 'rapid', name: 'Rapid Metro (Gurugram)', shortName: 'Rapid Metro', operator: 'DMRC/RMGL', color: '#475569', textColor: '#FFFFFF', lengthKm: 12.874, officialStations: 11, status: 'operational', terminals: 'Sector 55-56 ↔ Sikanderpur ↔ Cyber City Loop' },
       rrts: { id: 'rrts', name: 'Namo Bharat RRTS', shortName: 'Namo Bharat RRTS', operator: 'NCRTC', color: '#B45309', textColor: '#FFFFFF', lengthKm: 82.000, officialStations: 15, status: 'operational', terminals: 'Sarai Kale Khan - Nizamuddin ↔ Modipuram' },
       meerut: { id: 'meerut', name: 'Meerut Metro (NCRTC)', shortName: 'Meerut Metro', operator: 'NCRTC', color: '#0EA5E9', textColor: '#FFFFFF', lengthKm: 21.000, officialStations: 13, status: 'operational', terminals: 'Meerut South ↔ Modipuram Depot' },
@@ -663,9 +711,9 @@
       up_golden_branch: ['Lajpat Nagar', 'Andrews Ganj', 'Greater Kailash-1', 'Chirag Delhi', 'Pushpa Bhawan', 'Saket District Centre', 'Pushp Vihar', 'Saket G Block'],
       up_red_ext: ['Rithala', 'Rohini Sector-25', 'Rohini Sector-26', 'Rohini Sector-31', 'Rohini Sector-32', 'Rohini Sector-36', 'Barwala', 'Rohini Sector-35', 'Rohini Sector-34', 'Bawana Ind. Area-1 Sector-3, 4', 'Bawana Ind. Area-1 Sector-1, 2', 'Bawana JJ Colony', 'Sanoth', 'New Sanoth', 'Depot Station Narela', 'Bhorgarh Village', 'Anaj Mandi Narela', 'Narela DDA Sports Complex', 'Narela', 'Narela Sector-5', 'Kundli', 'Nathupur'],
       up_aqua_ext: ['Botanical Garden', 'Noida Sector-44', 'Noida Office (Sector-96)', 'Noida Sector-97', 'Noida Sector-105', 'Noida Sector-108', 'Noida Sector-93', 'Panchsheel Balak Inter College', 'Noida Sector-142'],
-      up_aqua_kp5: ['Noida Sector-51', 'Noida Sector-61', 'Noida Sector-70', 'Noida Sector-122', 'Noida Sector-123', 'Greater Noida Sector-4', 'Ecotech-12', 'Greater Noida Sector-2', 'Greater Noida Sector-3', 'Greater Noida Sector-10', 'Greater Noida Sector-12', 'Knowledge Park-V'],
-      up_aqua_boraki: ['Depot Station', 'Junpat', 'Boraki MMTH'],
-      up_aqua_full_service: ['Knowledge Park-V', 'Greater Noida Sector-12', 'Greater Noida Sector-10', 'Greater Noida Sector-3', 'Greater Noida Sector-2', 'Ecotech-12', 'Greater Noida Sector-4', 'Noida Sector-123', 'Noida Sector-122', 'Noida Sector-70', 'Noida Sector-61', 'Noida Sector-51', 'Noida Sector-50', 'Noida Sector-76', 'Noida Sector-101', 'Noida Sector-81', 'NSEZ', 'Noida Sector-83', 'Noida Sector-137', 'Noida Sector-142', 'Noida Sector-143', 'Noida Sector-144', 'Noida Sector-145', 'Noida Sector-146', 'Noida Sector-147', 'Noida Sector-148', 'Knowledge Park-II', 'Pari Chowk', 'Alpha-1', 'Delta-1', 'GNIDA Office', 'Depot Station', 'Junpat', 'Boraki MMTH'],
+      up_aqua_kp5: ['Noida Sector-51', 'Noida Sector-61', 'Noida Sector-70', 'Noida Sector-112', 'Noida Sector-123', 'Greater Noida Sector-4', 'Ecotech-12', 'Greater Noida Sector-2', 'Greater Noida Sector-3', 'Greater Noida Sector-10', 'Greater Noida Sector-12', 'Knowledge Park-V'],
+      up_aqua_boraki: ['Depot Station', 'MMTH', 'Boraki Station'],
+      up_aqua_full_service: ['Knowledge Park-V', 'Greater Noida Sector-12', 'Greater Noida Sector-10', 'Greater Noida Sector-3', 'Greater Noida Sector-2', 'Ecotech-12', 'Greater Noida Sector-4', 'Noida Sector-123', 'Noida Sector-112', 'Noida Sector-70', 'Noida Sector-61', 'Noida Sector-51', 'Noida Sector-50', 'Noida Sector-76', 'Noida Sector-101', 'Noida Sector-81', 'NSEZ', 'Noida Sector-83', 'Noida Sector-137', 'Noida Sector-142', 'Noida Sector-143', 'Noida Sector-144', 'Noida Sector-145', 'Noida Sector-146', 'Noida Sector-147', 'Noida Sector-148', 'Knowledge Park-II', 'Pari Chowk', 'Alpha-1', 'Delta-1', 'GNIDA Office', 'Depot Station', 'MMTH', 'Boraki Station'],
       up_gmrl: ['Millennium City Centre Gurugram', 'Sector 45', 'Cyber Park', 'Dist. Shopping Centre Sector 47', 'Subhash Chowk', 'Sector 48', 'Sector 72A', 'Hero Honda Chowk', 'Udyog Vihar Phase-6', 'Sector 10', 'Sector 37', 'Basai Village', 'Sector 9', 'Sector 7', 'Sector 4', 'Sector 5', 'Ashok Vihar (Gurugram)', 'Sector 3', 'Bajghera Road', 'Palam Vihar Extension', 'Palam Vihar', 'Sector 23A', 'Sector 22', 'Udyog Vihar Phase-4', 'Udyog Vihar Phase-5', 'Cyber City'],
       up_gmrl_spur: ['Basai Village', 'Sector 9', 'Sector 101']
     };
@@ -680,7 +728,7 @@
       { id: 'sec_shiv_maujpur', label: 'Shiv Vihar to Maujpur Babarpur', parentLineId: 'pink', corridorKey: 'pink_shiv_maujpur', color: '#EC4899', textColor: '#FFFFFF' }
     ];
     const SKYWALK_LINKS = [
-      { from: 'Noida Sector-52', to: 'Noida Sector-51', distanceMeters: 300, walkMins: 4, label: '⇄ Skywalk (Sec 51–52)' },
+      { from: 'Noida Sector-52', to: 'Noida Sector-51', distanceMeters: 300, walkMins: 4, label: '⇄ Skywalk (Sec 51–52)', compact: true },
       { from: 'Dhaula Kuan', to: 'Durgabai Deshmukh South Campus', distanceMeters: 1200, walkMins: 10, label: '⇄ FOB (Dhaula Kuan–South Campus)' }
     ];
     const getSkywalkLink = (a, b) => SKYWALK_LINKS.find(sw => (sw.from === a && sw.to === b) || (sw.from === b && sw.to === a));
@@ -828,10 +876,20 @@
     }
     // ---- Smooth spline corridors (station dots always sit exactly on the curve) ----
     const CURVE_WAYPOINTS = {
-      up_aqua_kp5: { 'Noida Sector-61|Noida Sector-70': [[2612, 1384]] },
+      up_aqua_kp5: {
+        'Noida Sector-61|Noida Sector-70': [[2610, 1431]],
+        'Noida Sector-70|Noida Sector-112': [[2790, 1431], [2804, 1436], [2806, 1464], [2814, 1474]],
+        'Greater Noida Sector-4|Ecotech-12': [[3418, 1305]]
+      },
       aqua: {},
-      up_aqua_ext: {},
-      up_aqua_boraki: {}
+      up_aqua_ext: {
+        'Noida Sector-44|Noida Office (Sector-96)': [[2259, 1781], [2265, 1795]],
+        'Noida Sector-93|Panchsheel Balak Inter College': [[2695, 2095]]
+      },
+      up_aqua_boraki: {
+        'Depot Station|MMTH': [],
+        'MMTH|Boraki Station': [[3841, 2218], [3860, 2188], [3864, 2156]]
+      }
     };
     const CUSTOM_CURVES = {};   // rawLid -> SVG path d
     const PAIR_SAMPLES = {};    // "A|B" -> dense points from A (exclusive) to B (inclusive)
@@ -917,7 +975,7 @@
         'New Ashok Nagar': { x: 1995, y: 1485 }, 'Anand Vihar ISBT': { x: 2060, y: 1100 }, 'Karkarduma': { x: 1960, y: 1020 },
         'Welcome': { x: 1800, y: 800 }, 'Maujpur-Babarpur': { x: 1880, y: 640 }, 'Shiv Vihar': { x: 2040, y: 480 },
         'Chhatarpur': { x: 1240, y: 2140 }, 'Sikanderpur': { x: 1060, y: 2260 }, 'Saket G Block': { x: 1460, y: 2080 },
-        'Noida Sector-52': { x: 2540, y: 1500 }, 'Noida Sector-61': { x: 2590, y: 1436 }, 'Noida Sector-51': { x: 2630, y: 1620 }, 'Noida Sector-142': { x: 2780, y: 2000 }
+        'Noida Sector-52': { x: 2540, y: 1500 }, 'Noida Sector-61': { x: 2590, y: 1436 }, 'Noida Sector-51': { x: 2576, y: 1548 }, 'Noida Sector-142': { x: 2780, y: 2000 }
       });
       // Yellow
       setPoly(['Samaypur Badli', 'Rohini Sector-18, 19', 'Haiderpur Badli Mor'], [[960, 280], [1020, 380]]);
@@ -979,7 +1037,7 @@
       // Orange
       setPoly(['New Delhi', 'Shivaji Stadium', 'Dhaula Kuan', 'Delhi Aerocity', 'Airport (T-3)', 'Dwarka Sector-21', 'Yashobhoomi Dwarka Sector-25'], [[1320, 1060], [1160, 1280], [960, 1540], [780, 1800], [580, 1800], [360, 1800], [360, 1900]]);
       // Aqua
-      setPoly(['Noida Sector-51', 'Noida Sector-50', 'Noida Sector-76', 'Noida Sector-101', 'Noida Sector-81', 'NSEZ', 'Noida Sector-83', 'Noida Sector-137', 'Noida Sector-142', 'Noida Sector-143', 'Noida Sector-144', 'Noida Sector-145', 'Noida Sector-146', 'Noida Sector-147', 'Noida Sector-148', 'Knowledge Park-II', 'Pari Chowk', 'Alpha-1', 'Delta-1', 'GNIDA Office', 'Depot Station'], [[2630, 1620], [2630, 1765], [2780, 2000], [3020, 2240], [3260, 2320]]);
+      setPoly(['Noida Sector-51', 'Noida Sector-50', 'Noida Sector-76', 'Noida Sector-101', 'Noida Sector-81', 'NSEZ', 'Noida Sector-83', 'Noida Sector-137', 'Noida Sector-142', 'Noida Sector-143', 'Noida Sector-144', 'Noida Sector-145', 'Noida Sector-146', 'Noida Sector-147', 'Noida Sector-148', 'Knowledge Park-II', 'Pari Chowk', 'Alpha-1', 'Delta-1', 'GNIDA Office', 'Depot Station'], [[2576, 1548], [2630, 1765], [2780, 2000], [3020, 2240], [3260, 2320]]);
       // RRTS & Meerut
       setPoly(['Sarai Kale Khan - Nizamuddin', 'New Ashok Nagar', 'Anand Vihar ISBT'], [[1755, 1475], [1995, 1485], [2060, 1100]]);
       setPoly(['Anand Vihar ISBT', 'Sahibabad', 'Ghaziabad'], [[2060, 1100], [2280, 950], [2480, 815]]);
@@ -1004,7 +1062,7 @@
       setPoly(['Botanical Garden', 'Noida Sector-44', 'Noida Office (Sector-96)', 'Noida Sector-97', 'Noida Sector-105', 'Noida Sector-108', 'Noida Sector-93', 'Panchsheel Balak Inter College', 'Noida Sector-142'], [[2260, 1680], [2480, 1940], [2780, 2000]]);
       // Aqua Line (Sec-51 → Depot) + Aqua extension (Botanical Garden → Sec-142) laid out after the NMRC 'New Noida Metro Grid' map
       Object.assign(STATION_COORDS, {
-        'Noida Sector-51': { x: 2630, y: 1620 },
+        'Noida Sector-51': { x: 2576, y: 1548 },
         'Noida Sector-50': { x: 2641, y: 1690 },
         'Noida Sector-76': { x: 2652, y: 1760 },
         'Noida Sector-101': { x: 2672, y: 1847 },
@@ -1031,16 +1089,16 @@
         'Noida Sector-105': { x: 2525, y: 1952 },
         'Noida Sector-108': { x: 2574, y: 1983 },
         'Noida Sector-93': { x: 2641, y: 2029 },
-        'Panchsheel Balak Inter College': { x: 2714, y: 2142 },
-        'Junpat': { x: 3800, y: 2315 },
-        'Boraki MMTH': { x: 3915, y: 2315 }
+        'Panchsheel Balak Inter College': { x: 2730, y: 2158 },
+        'MMTH': { x: 3788, y: 2251 },
+        'Boraki Station': { x: 3848, y: 2117 }
       });
       // Aqua Line extension Sec-51 → Sec-61 → Sec-70 → Greater Noida West → Knowledge Park-V
-      // (shape follows the NMRC alignment: north to Sec-61, hook east to Sec-70, east via 122/123 to GN Sec-4,
+      // (shape follows the NMRC alignment: north to Sec-61, hook east to Sec-70, east via 112/123 to GN Sec-4,
       //  sweeping arc through Ecotech-12, then a long diagonal south-east down to Knowledge Park-V)
       Object.assign(STATION_COORDS, {
-        'Noida Sector-70': { x: 2738, y: 1388 },
-        'Noida Sector-122': { x: 2846, y: 1469 },
+        'Noida Sector-70': { x: 2738, y: 1431 },
+        'Noida Sector-112': { x: 2846, y: 1469 },
         'Noida Sector-123': { x: 3043, y: 1411 },
         'Greater Noida Sector-4': { x: 3327, y: 1318 },
         'Ecotech-12': { x: 3589, y: 1382 },
@@ -1050,7 +1108,6 @@
         'Greater Noida Sector-12': { x: 3975, y: 2049 },
         'Knowledge Park-V': { x: 4083, y: 2200 }
       });
-      setPoly(['Depot Station', 'Junpat', 'Boraki MMTH'], [[3260, 2320], [3375, 2360], [3490, 2400]]);
       setPoly(['Millennium City Centre Gurugram', 'Sector 45', 'Cyber Park', 'Dist. Shopping Centre Sector 47', 'Subhash Chowk', 'Sector 48', 'Sector 72A', 'Hero Honda Chowk', 'Udyog Vihar Phase-6', 'Sector 10', 'Sector 37', 'Basai Village', 'Sector 9', 'Sector 7', 'Sector 4', 'Sector 5', 'Ashok Vihar (Gurugram)', 'Sector 3', 'Bajghera Road', 'Palam Vihar Extension', 'Palam Vihar', 'Sector 23A', 'Sector 22', 'Udyog Vihar Phase-4', 'Udyog Vihar Phase-5', 'Cyber City'], [[880, 2390], [640, 2580], [420, 2580], [220, 2400], [220, 2240], [360, 2180], [360, 2060], [460, 1970], [660, 1970], [870, 2060]]);
       setPoly(['Basai Village', 'Sector 9', 'Sector 101'], [[220, 2340], [220, 2240], [100, 2160]]);
 
@@ -1068,7 +1125,9 @@
 
     // Station search (fuzzy-ish): exact > prefix > word-prefix > substring
     const normName = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
+    const previousNmrcNames = new Map([['noidasector122','Noida Sector-112'], ['junpat','MMTH'], ['borakimmth','Boraki Station']]);
     function searchStations(q, limit = 8) {
+      q = previousNmrcNames.get(normName(q)) || q;
       const ql = q.trim().toLowerCase();
       const qn = normName(q);
       if (!qn) return [];
@@ -1395,7 +1454,7 @@
         const m = LINE_META[lid];
         let label = m.shortName;
         if (lid === 'magenta' && networkLayerMode === 'upcoming') label = 'Line 8 - Magenta (Botanical Garden ↔ Inderlok)';
-        else if (lid === 'aqua' && networkLayerMode === 'upcoming') label = 'Aqua Line (Knowledge Park-V ↔ Boraki MMTH)';
+        else if (lid === 'aqua' && networkLayerMode === 'upcoming') label = 'Aqua Line (Knowledge Park-V ↔ Boraki Station)';
         html += pill(lid, label, m.color, m.textColor, currentLineFilter === lid);
       });
       if (networkLayerMode !== 'upcoming') {
@@ -1511,8 +1570,8 @@
       'Delta-1': [{ dx: 12, dy: 22, anchor: 'start', tier: 1 }, { dx: -12, dy: -14, anchor: 'end', tier: 2 }],
       'GNIDA Office': [{ dx: -12, dy: -14, anchor: 'end', tier: 1 }, { dx: 12, dy: 22, anchor: 'start', tier: 2 }],
       'Depot Station': [{ dx: 0, dy: -20, anchor: 'middle', tier: 1 }, { dx: 14, dy: 22, anchor: 'start', tier: 2 }],
-      'Junpat': [{ dx: 0, dy: 26, anchor: 'middle', tier: 1 }, { dx: 0, dy: -20, anchor: 'middle', tier: 2 }],
-      'Boraki MMTH': [{ dx: 16, dy: 5, anchor: 'start', tier: 1 }, { dx: 0, dy: -20, anchor: 'middle', tier: 2 }],
+      'MMTH': [{ dx: 0, dy: -20, anchor: 'middle', tier: 1 }, { dx: 12, dy: 28, anchor: 'start', tier: 2 }],
+      'Boraki Station': [{ dx: 16, dy: 5, anchor: 'start', tier: 1 }, { dx: 0, dy: -20, anchor: 'middle', tier: 2 }],
       'Noida Sector-44': [{ dx: -14, dy: 14, anchor: 'end', tier: 1 }, { dx: 14, dy: -12, anchor: 'start', tier: 2 }],
       'Noida Office (Sector-96)': [{ dx: -14, dy: 14, anchor: 'end', tier: 1 }, { dx: 14, dy: -12, anchor: 'start', tier: 2 }],
       'Noida Sector-97': [{ dx: -14, dy: 14, anchor: 'end', tier: 1 }, { dx: 14, dy: -12, anchor: 'start', tier: 2 }],
@@ -1526,7 +1585,7 @@
       'Noida Sector-59': [{ dx: -16, dy: -12, anchor: 'end', tier: 1 }, { dx: 16, dy: -12, anchor: 'start', tier: 2 }],
       'Noida Sector-62': [{ dx: -16, dy: -12, anchor: 'end', tier: 1 }, { dx: 16, dy: -12, anchor: 'start', tier: 2 }],
       'Noida Sector-70': [{ dx: 0, dy: -20, anchor: 'middle', tier: 1 }, { dx: 0, dy: -34, anchor: 'middle', tier: 2 }],
-      'Noida Sector-122': [{ dx: 4, dy: 26, anchor: 'start', tier: 1 }, { dx: 0, dy: 24, anchor: 'middle', tier: 2 }],
+      'Noida Sector-112': [{ dx: 4, dy: 26, anchor: 'start', tier: 1 }, { dx: 0, dy: 24, anchor: 'middle', tier: 2 }],
       'Noida Sector-123': [{ dx: 0, dy: -20, anchor: 'middle', tier: 1 }, { dx: 0, dy: 24, anchor: 'middle', tier: 2 }],
       'Greater Noida Sector-4': [{ dx: 0, dy: 26, anchor: 'middle', tier: 1 }, { dx: 0, dy: -32, anchor: 'middle', tier: 2 }],
       'Ecotech-12': [{ dx: 16, dy: 2, anchor: 'start', tier: 1 }, { dx: 0, dy: -20, anchor: 'middle', tier: 2 }],
@@ -1594,7 +1653,7 @@
       SKYWALK_LINKS.forEach(sw => {
         const p1 = STATION_COORDS[sw.from], p2 = STATION_COORDS[sw.to];
         if (!p1 || !p2) return;
-        linesFrag.appendChild(svgEl('line', { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y, stroke: '#0284c7', 'stroke-width': (4.5 * nodeK).toFixed(1), 'stroke-dasharray': `${6 * nodeK} ${4 * nodeK}` }));
+        linesFrag.appendChild(svgEl('line', { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y, stroke: '#0284c7', 'stroke-width': (4.5 * nodeK).toFixed(1), 'stroke-dasharray': `${(sw.compact ? 3 : 6) * nodeK} ${(sw.compact ? 2 : 4) * nodeK}` }));
         if (s >= 0.45 || showAllLabels) {
           const t = svgEl('text', { x: (p1.x + p2.x) / 2 - 14, y: (p1.y + p2.y) / 2 + 24, 'text-anchor': 'end', 'font-size': 10, fill: '#0369a1', class: 'station-label' });
           t.textContent = sw.label;
@@ -1941,6 +2000,34 @@
     // =========================================================================
     // 5. STATION INSPECTOR (sidebar on desktop, floating card on mobile/tablet)
     // =========================================================================
+    const storedBookmarks = storage.get('dmrc_station_bookmarks', []);
+    const bookmarks = new Set((Array.isArray(storedBookmarks) ? storedBookmarks : []).map(name => previousNmrcNames.get(normName(name)) || name));
+    function renderBookmarks() {
+      const stations = [...bookmarks].filter(name => Object.hasOwn(STATION_LINES,name));
+      $('saved-toggle').textContent = '☆ Saved (' + stations.length + ')';
+      $('saved-list').innerHTML = stations.length ? stations.map(name =>
+        `<button class="metro-control" data-act="locate" data-station="${escHtml(name)}">${lineDots(name)} ${escHtml(name)}</button>`).join('')
+        : '<p class="text-xs text-slate-600">Select a station on the map and choose “Save station” to keep it here.</p>';
+    }
+    function toggleSavedDrawer() {
+      const drawer = $('saved-drawer');
+      drawer.hidden = !drawer.hidden;
+      $('saved-toggle').setAttribute('aria-expanded', String(!drawer.hidden));
+    }
+    document.addEventListener('click', event => {
+      const control = event.target.closest('[data-bookmark]');
+      if (!control) return;
+      const name = control.dataset.bookmark;
+      if (bookmarks.has(name)) bookmarks.delete(name);
+      else bookmarks.add(name);
+      storage.set('dmrc_station_bookmarks', [...bookmarks]);
+      document.querySelectorAll('[data-bookmark]').forEach(button => {
+        if (button.dataset.bookmark !== name) return;
+        button.setAttribute('aria-pressed', String(bookmarks.has(name)));
+        button.textContent = bookmarks.has(name) ? '★ Saved station' : '☆ Save station';
+      });
+      renderBookmarks();
+    });
     function getStationNeighbors(st) {
       const out = {};
       Object.keys(CORRIDOR_STATIONS).forEach(raw => {
@@ -1984,6 +2071,7 @@
           ${inCard ? `<button data-act="close-card" aria-label="Close" class="w-8 h-8 shrink-0 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 text-sm font-bold">✕</button>` : ''}
         </div>
         <div class="flex flex-wrap gap-1 mt-2">${badges}</div>
+        <button class="metro-control mt-2" data-bookmark="${stAttr}" aria-pressed="${bookmarks.has(stName)}">${bookmarks.has(stName) ? '★ Saved station' : '☆ Save station'}</button>
         ${skywalkHtml ? `<div class="mt-2">${skywalkHtml}</div>` : ''}
         ${nbHtml ? `<div class="mt-2.5 space-y-1.5"><div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Adjacent stations</div>${nbHtml}</div>` : ''}
         <div class="grid grid-cols-3 gap-1.5 pt-3">
@@ -2073,7 +2161,7 @@
         else { stList = CORRIDOR_STATIONS.up_magenta_full_service; simTitle = 'Line 8 - Magenta Line (Botanical Garden ↔ Inderlok)'; }
       } else if (lineId === 'aqua' && !customStations) {
         if (networkLayerMode === 'operational') stList = CORRIDOR_STATIONS.aqua;
-        else { stList = CORRIDOR_STATIONS.up_aqua_full_service; simTitle = 'Aqua Line (Knowledge Park-V ↔ Boraki MMTH)'; }
+        else { stList = CORRIDOR_STATIONS.up_aqua_full_service; simTitle = 'Aqua Line (Knowledge Park-V ↔ Boraki Station)'; }
       }
       if (stList.length < 2) return;
       Object.assign(simState, {
@@ -2749,11 +2837,49 @@
             <div class="p-3 rounded-xl bg-slate-100 text-slate-900"><div class="text-[10px] uppercase font-bold text-slate-500">Est. Time</div><div class="text-xl font-extrabold mt-0.5">${summary.totalMinutes} min</div></div>
             <div class="p-3 rounded-xl bg-slate-100 text-slate-900"><div class="text-[10px] uppercase font-bold text-slate-500">Distance • Changes</div><div class="text-base font-extrabold mt-1">${summary.totalKm} km • ${interchanges}</div></div>
           </div>
+          <section class="journey-guide" aria-label="Stop-by-stop journey guide">
+            <div class="guide-top"><h3>Stop-by-stop guide</h3><span id="guide-count"></span></div>
+            <div aria-live="polite" aria-atomic="true"><div class="guide-title" id="guide-station"></div><p class="guide-detail" id="guide-detail"></p></div>
+            <input id="guide-position" type="range" min="0" max="${steps.length}" value="0" aria-label="Journey stop" oninput="showGuideStop(this.valueAsNumber)">
+            <div class="guide-actions"><button class="metro-control" id="guide-back" onclick="moveGuide(-1)">← Previous</button><button class="metro-control" id="guide-locate" data-act="locate">View station</button><button class="metro-control" id="guide-next" onclick="moveGuide(1)">Next →</button></div>
+          </section>
           ${fareNote}
           <div class="flex h-2 rounded-full overflow-hidden bg-slate-100">${realLegs.map(l => `<span title="${escHtml(LINE_META[l.lineId].name)}" style="flex:${l.stops.length - 1};background:${LINE_META[l.lineId].color}"></span>`).join('')}</div>
           <div class="lg:max-h-[56vh] lg:overflow-y-auto custom-scrollbar pr-1 py-1">${legsHtml}</div>
         </div>`;
+      showGuideStop(0);
       if (userInitiated && !isDesktop()) panel.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'start' });
+    }
+    function moveGuide(delta) {
+      showGuideStop($('guide-position').valueAsNumber + delta);
+    }
+    function showGuideStop(position) {
+      if (!lastRoute) return;
+      const {steps, origin, summary} = lastRoute;
+      const index = Math.max(0, Math.min(position, steps.length));
+      const station = index ? steps[index - 1].to : origin;
+      let offset = 0;
+      let instruction = 'You have reached your destination.';
+      for (const leg of summary.displayLegs) {
+        const end = offset + leg.stops.length - 1;
+        if (index < end) {
+          if (leg.isSkywalk) instruction = 'Walk to ' + leg.to + '.';
+          else {
+            const action = index > offset ? 'Continue on' : index === 0 || steps[index - 1].isSkywalk ? 'Board' : 'Change trains to';
+            instruction = action + ' ' + LINE_META[leg.lineId].shortName + ' towards ' + (leg.towards || leg.to) + '.';
+          }
+          break;
+        }
+        offset = end;
+      }
+      $('guide-position').value = index;
+      $('guide-position').setAttribute('aria-valuetext', station + ', stop ' + (index + 1) + ' of ' + (steps.length + 1));
+      $('guide-count').textContent = 'Stop ' + (index + 1) + ' / ' + (steps.length + 1);
+      $('guide-station').textContent = station;
+      $('guide-detail').textContent = instruction;
+      $('guide-back').disabled = !index;
+      $('guide-next').disabled = index === steps.length;
+      $('guide-locate').dataset.station = station;
     }
     function showRouteOnMap() {
       if (!lastRoute) return;
@@ -3056,10 +3182,21 @@
       const magentaCard = card(LINE_META.magenta.color, LINE_META.magenta.textColor, 'Line 8 - Magenta Line (Unified Botanical Garden ↔ Inderlok)', '39.818 km Ext. • 64 Total Stns',
         'Single Unified Line 8 Service: Starts at <strong>Botanical Garden</strong> and terminates at <strong>Inderlok</strong> via Hauz Khas, Janakpuri West, Peeragarhi, Majlis Park, Central Secretariat, India Gate, Indraprastha &amp; New Delhi',
         'Simulate Botanical Garden → Inderlok on Map', "switchTab('map'); clearRouteOverlay(false); setNetworkLayerMode('upcoming'); filterMapLine('magenta', true);", [...new Set(CORRIDOR_STATIONS.up_magenta_full_service)]);
-      const aquaCard = card(LINE_META.aqua.color, LINE_META.aqua.textColor, 'Aqua Line (Unified Knowledge Park-V ↔ Boraki MMTH)', '20.035 km Ext. • 34 Total Stns',
-        'Single Unified Aqua Line Service: Starts at <strong>Knowledge Park-V</strong> and terminates at <strong>Boraki MMTH</strong> via Greater Noida West, Noida Sector-70, Noida Sector-61, Noida Sector-51, Noida Sector-142, Pari Chowk, Depot Station &amp; Junpat',
-        'Simulate Knowledge Park-V → Boraki MMTH on Map', "switchTab('map'); clearRouteOverlay(false); setNetworkLayerMode('upcoming'); filterMapLine('aqua', true);", CORRIDOR_STATIONS.up_aqua_full_service);
-      upGrid.innerHTML = magentaCard + aquaCard + upKeys.map(lid => {
+      const nmrcProjects = [
+        ['up_aqua_kp5', 'Sector 51 – Knowledge Park V', '17.435 km • 11 new stations', 'Blue Line interchange at Sector 61.', 'd3'],
+        ['up_aqua_ext', 'Sector 142 – Botanical Garden', '11.56 km • 8 new stations', 'Blue and Magenta line interchange at Botanical Garden.', 'd2'],
+        ['up_aqua_boraki', 'Depot Station – Boraki Station', '2.60 km • 2 new stations', 'The NMRC animation labels the intermediate stop MMTH and the terminus Boraki Station.', 'd4']
+      ];
+      const aquaCards = nmrcProjects.map(([key, title, details, note, video]) => {
+        const stations = [...CORRIDOR_STATIONS[key]];
+        if (key === 'up_aqua_ext') stations.reverse();
+        const line = key === 'up_aqua_ext' ? key : 'aqua';
+        const action = `switchTab('map'); clearRouteOverlay(false); setNetworkLayerMode('upcoming'); filterMapLine('${line}', true); startTrainSimulation('${line}', CORRIDOR_STATIONS['${key}']${key === 'up_aqua_ext' ? '.slice().reverse()' : ''}, '${title}');`;
+        return card(LINE_META[line].color, LINE_META[line].textColor, title, details,
+          `${note} <a class="underline" href="https://www.nmrcnoida.com/assets/videos/${video}.mp4" target="_blank" rel="noopener">Watch NMRC route video</a>`,
+          'Simulate extension on map', action, stations);
+      }).join('');
+      upGrid.innerHTML = magentaCard + aquaCards + upKeys.filter(lid => lid !== 'up_aqua_ext').map(lid => {
         const m = LINE_META[lid];
         return card(m.color, m.textColor, m.name, `${m.lengthKm.toFixed(3)} km • ${m.officialStations} Stns`, escHtml(m.terminals), 'Simulate Corridor on Map', `switchTab('map'); filterMapLine('${lid}', true);`, CORRIDOR_STATIONS[lid]);
       }).join('');
@@ -3199,10 +3336,25 @@
       if (TAB_IDS.includes(h) && h !== currentTab) switchTab(h);
     });
 
+    const railScene = $('rail-scene');
+    const railToggle = $('rail-toggle');
+    const railMotionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+    function setRailRunning(running) {
+      railScene.dataset.running = String(running);
+      const action = running ? 'Pause metro animation' : 'Play metro animation';
+      railToggle.setAttribute('aria-label', action);
+      railToggle.title = action;
+      railToggle.firstElementChild.textContent = running ? 'Ⅱ' : '▶';
+    }
+    setRailRunning(!railMotionPreference.matches);
+    railToggle.addEventListener('click', () => setRailRunning(railScene.dataset.running !== 'true'));
+    railMotionPreference.addEventListener('change', event => setRailRunning(!event.matches));
+
     // Initialise application
     window.addEventListener('DOMContentLoaded', () => {
       buildSchematicCoordinates();
       renderLineFilterPills();
+      renderBookmarks();
       setupMapPanZoom();
       renderSidebar();
       renderStatsChart();
@@ -3222,5 +3374,5 @@
       if (TAB_IDS.includes(h) && h !== 'map') switchTab(h);
     });
   </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a612d7bf28db48e3',t:'MTc5NTgwMDQzNw=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a612d7bf28db48e3',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
